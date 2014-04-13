@@ -10,6 +10,8 @@ urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'ForeverTodo.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
+
+    url(r'^$', 'app_todo.views.index'),
     url(r'^task/(?P<task_id>\d+)/$', 'app_todo.views.task'),
 
     url(r'^api/', include(todo_item_resource.urls)),
