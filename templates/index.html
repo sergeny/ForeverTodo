@@ -6,6 +6,40 @@
     <title>Bootstrap Template</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{%  static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+
+      <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+<link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+<script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+
+<script src="{%  static 'js/jquery.tinysort.min.js' %}"></script>
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script>
+$(function() {
+$( "#accordion" ).accordion({  header: "h3" });
+$( "#sortable").sortable();
+$('li').tsort();
+});
+
+$(function(){
+    $('#todo-item-header').editable({
+        url: '/post',
+        title: 'Enter username'
+    });
+});
+
+
+    $(function(){
+    $('#todo-content').editable({
+        url: '/post',
+        title: 'Enter comments',
+        rows: 3
+    });
+});
+</script>
+
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -41,6 +75,55 @@
       <a class="btn btn-primary btn-lg btn-block">Big ASS Learn more button</a>
     </div>
   </div>
+
+  <div id="accordion">
+<ul id="sortable" style="list-style: none; "> <!--padding:0; margin:0;-->
+    <li>
+ <h3>TODO: Learn python well</h3>
+<div>
+<p>
+Mauris mauris ante, blandit et, ultrices a, suscipit eget, quam. Integer
+ut neque. Vivamus nisi metus, molestie vel, gravida in, condimentum sit
+amet, nunc. Nam a nibh. Donec suscipit eros. Nam mi. Proin viverra leo ut
+odio. Curabitur malesuada. Vestibulum a velit eu ante scelerisque vulputate.
+</p>
+</div>
+        </li><li>
+<h3 id="todo-item-header" data-type="text" data-pk="1">TODO: pick up milk</h3>
+<div>
+<p>
+Sed non urna. Donec et ante. Phasellus eu ligula. Vestibulum sit amet
+purus. Vivamus hendrerit, dolor at aliquet laoreet, mauris turpis porttitor
+velit, faucibus interdum tellus libero ac justo. Vivamus non quam. In
+suscipit faucibus urna.
+</p>
+</div></li><li>
+<h3>Section 3</h3>
+<div>
+<p>
+Nam enim risus, molestie et, porta ac, aliquam ac, risus. Quisque lobortis.
+Phasellus pellentesque purus in massa. Aenean in pede. Phasellus ac libero
+ac tellus pellentesque semper. Sed ac felis. Sed commodo, magna quis
+lacinia ornare, quam ante aliquam nisi, eu iaculis leo purus venenatis dui.
+</p>
+<ul>
+<li>List item one</li>
+<li>List item two</li>
+<li>List item three</li>
+</ul>
+</div></li><li>
+<h3>Section 4</h3>
+<div>
+<a href="#" id="todo-content" data-type="textarea" data-pk="1">
+<p>
+Cras dictum. Pellentesque habitant morbi tristique senectus et netus
+et malesuada fames ac turpis egestas. Vestibulum ante ipsum primis in
+faucibus orci luctus et ultrices posuere cubilia Curae; Aenean lacinia
+mauris vel est.
+</p>
+    </a>
+</div></li>
+</div>
 
   </body>
 </html>
