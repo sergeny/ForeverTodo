@@ -1,0 +1,7 @@
+Django==1.6.2
+django-tastypie==0.11.0
+nltk==0.9.5
+python-dateutil==2.2
+python-mimeparse==0.1.4
+six==1.6.1
+wsgiref==0.1.2
