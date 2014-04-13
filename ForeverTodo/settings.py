@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
-#    'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.app_directories.Loader',
 )
 
 TEMPLATE_DIRS = (
@@ -46,6 +46,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'tastypie',
+
     'app_todo',
 )
 
