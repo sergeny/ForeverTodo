@@ -18,10 +18,11 @@ function ajax_deleteItem(item_id) {
     return false;
 }
 /*
+    item_diff only contains those fields that are modified
     returns true on success, false on failure
  */
-function ajax_modifyItem(item_id, item) {
-    return false;
+function ajax_modifyItem(item_id, item_diff) {
+    return true;
 }
 /*
     returns item_id received from the server on success, undefined on failure
@@ -39,17 +40,36 @@ function ajax_createItem(item) {
 
 });
 
-    $(function() {
-$(".todo-header").editable({
-    success: function(response, newValue) {
-        alert(this.data-pk);
+
+
+function getEditableCallback(item_id, field) {
+    return function(response, newValue) {
+        var result = ajax_modifyItem(item_id, { field: newValue } );
+        if (result) { // ajax success
+            _items[item_id][field] = newValue;
+         } else {
+            return "Error while sending data to the server";
+        }
     }
+}
+
+    $(function() {
+    $(".todo-header").each(function(i, obj) {
+        $(this).editable({
+            success: getEditableCallback(this.getAttribute('data-pk'), 'title')
+        });
+    });
+    $(".todo-content").each(function(i, obj) {
+        $(this).editable({
+            success: getEditableCallback(this.getAttribute('data-pk'), 'text')
+        });
     });
 
-$(".todo-content").editable();
+
+
 $( "#acscordion" ).accordion({  disabled: true, header: "h3" });
 $( "#sortable").sortable();
-        $('li').tsort();
+
 
 });
 
@@ -113,7 +133,7 @@ $( "#sortable").sortable();
                  "<em>(click or tap to edit)</em>") +
             "</div>"+
             "<div class=\"panel-body " + (is_completed ? "" : " todo-content ")+
-               "\" data-type=\"textarea\">" + text + "</div>"+
+               "\" data-type=\"textarea\" data-pk=\""+item_id+"\">" + text + "</div>"+
             "<div class=\"panel-footer\">"+
                (is_completed ?
                   "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted("+item_id+", false);\">Revert to pending</button>" :
