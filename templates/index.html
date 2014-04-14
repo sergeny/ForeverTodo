@@ -96,13 +96,93 @@ $('li').tsort();
 });
 
     $(function() {
+$(".todo-header").editable();
+$(".todo-content").editable();
 $( "#acscordion" ).accordion({  disabled: true, header: "h3" });
 $( "#sortable").sortable();
         $('li').tsort();
 
 });
 
+
+    priorities=[];
+    completed=[];
+
+    function priorityButtonHTML(item_id, is_enabled) {
+
+        if (priorities[item_id] == undefined) {
+            priorities[item_id] = 0;
+        }
+
+        var priority=priorities[item_id];
+
+        var clbl=["label-default", "label-primary", "label-danger"][priority];
+        var ctxt=["Low priority", "Normal priority", "High priority"][priority];
+        return "<button " + (is_enabled ? "":" disabled ") + " type=\"button\" class=\"btn " + clbl +
+                "\" id=\"btn-priority-" + item_id + "\" onclick=\"toggleItemPriority(" + item_id +
+                ", true); \">" + ctxt + "</button>";
+    }
+
+    function toggleItemPriority(item_id, is_enabled) {
+          // FIXME: just make sure, what will happen to the previous event handler after replaceWith?
+            if (priorities[item_id] == undefined) {
+                priorities[item_id] = 0;
+            }
+            priorities[item_id] = (priorities[item_id] + 1) % 3;
+            setItemPriority(item_id, is_enabled);
+    }
+    function setItemPriority(item_id, is_enabled) {
+            // FIXME: just make sure, what will happen to the previous event handler after replaceWith?
+            if (priorities[item_id] == undefined) {
+                priorities[item_id] = 0;
+            }
+
+            $('#btn-priority-'+item_id).replaceWith(priorityButtonHTML(item_id, is_enabled));
+
+   }
+
+
+    function markCompleted(item_id, is_completed) {
+        completed[item_id]=is_completed;
+
+        $('#todo-item-'+item_id).replaceWith(todoItemHTML(item_id));
+
+        $(".todo-header").editable();
+$(".todo-content").editable();
+    }
+
+
+
+    function todoItemHTML(item_id) {
+       is_completed = completed[item_id];
+       if (is_completed==undefined) { is_completed = false; } // FIxME
+
+
+       return (is_completed ? "<div class=\"panel panel-success\" id=\"todo-item-"+item_id+"\">":
+                "<div class=\"panel panel-default\"               id=\"todo-item-"+item_id+"\">") +
+            "<div class=\"panel-heading\">"+
+               (is_completed ?
+                "<span class=\"label label-success\">Completed</span>" :
+               "<span class=\"label label-default\">Pending</span>") +
+                  priorityButtonHTML(item_id, !is_completed) +
+"<u " + (is_completed ? "" : "class=\"todo-header\"") +  "data-type=\"text\" data-pk=\""+item_id+"\">"+
+                "<b class=\"panel-title\" >Pick up milk</b></u>" +
+               (is_completed ?
+                 "<em>(not editable any more)</em>" :
+                 "<em>(click or tap to edit)</em>") +
+            "</div>"+
+            "<div class=\"panel-body " + (is_completed ? "" : " todo-content ")+
+               "\" data-type=\"textarea\">It is reeally important to pick up milk"+
+            "Really really super</div>"+
+            "<div class=\"panel-footer\">"+
+               (is_completed ?
+                  "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted("+item_id+", false);\">Revert to pending</button>" :
+                "<button type=\"button\" class=\"btn btn-success\" onclick=\"markCompleted("+item_id+", true);\">Mark as completed</button>") +
+     "<button type=\"button\" class=\"btn btn-warning pull-right\" >Delete</button>" +
+        "</div></div>";
+    }
     </script>
+
 
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -114,6 +194,29 @@ $( "#sortable").sortable();
   </head>
   <body>
 
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button>
+      <a class="navbar-brand" href="#">Forever Todo</a> </div>
+    <div class="navbar-collapse collapse">
+      <form class="navbar-form navbar-right" role="form">
+        <div class="form-group">
+          <input type="text" placeholder="Email" class="form-control">
+        </div>
+        <div class="form-group">
+          <input type="password" placeholder="Password" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-success">Sign in</button>
+      </form>
+    </div>
+    <!--/.navbar-collapse -->
+  </div>
+</div>
+
+
+
+<!--
     <div class="navbar navbar-inverse navbar-fixed-top">
 
     <div class="container">
@@ -136,77 +239,83 @@ $( "#sortable").sortable();
   </div>
 
 
-
-
+-->
   <div class="jumbotron">
 
       <div class="container">
 
-      <h1>Bootstrap starter template</h1>
+      <h1>Forever Todo Lists</h1>
 
-      <p class="lead">Bacon ipsum dolor sit amet tenderloin chuck jowl, drumstick pork loin kevin andouille tri-tip. Turkey biltong sirloin, tongue rump pork belly t-bone tail sausage venison corned beef. Jerky pig shoulder beef, tri-tip turducken kevin ribeye prosciutto spare ribs.</p>
-      <a class="btn btn-primary btn-lg btn-block">Big ASS Learn more button</a>
+      <p class="lead">Gone are the days when you had to struggle, pinning notes to your refrigerator with those little magnets. Leverage the power of the modern web to never ever forget anything again!</p>
+
+
+      </div>
+
 
           <div class="btn-group btn-group-justified">
+ <div class="btn-group">
+    <button type="button" class="btn btn-primary" onclick="$('#div-new-todo-item').show();">Create new item</button>
+  </div>
+
   <div class="btn-group">
-    <button type="button" class="btn btn-default">Sort by name</button>
+    <button type="button" class="btn btn-default" onclick="$('li').tsort();">Sort by name</button>
   </div>
   <div class="btn-group">
-    <button type="button" class="btn btn-default">Sort by priority</button>
+    <button type="button" class="btn btn-default" onclick="$('li').tsort();">Sort by priority</button>
   </div>
   <div class="btn-group">
-    <button type="button" class="btn btn-default">Sort by date</button>
+    <button type="button" class="btn btn-default" onclick="$('li').tsort();">Sort by date</button>
   </div>
 </div>
 
-      </div>
   </div>
 
 
+  <div class="container" id="div-new-todo-item" style="display:none; width: 40%">
+    <div id="msg" class="alert hide"></div>
+    <table id="user" class="table table-bordered table-striped">
+        <tbody>
+            <tr>
+                <td width="40%">Username</td>
+                <td><a href="#" class="myeditable" id="new_username" data-type="text" data-name="username" data-original-title="Enter username"></a></td>
+            </tr>
+            <tr>
+                <td>First name</td>
+                <td><a href="#" class="myeditable" data-type="text" data-name="firstname" data-original-title="Enter firstname"></a></td>
+            </tr>
+            <tr>
+                <td>Group</td>
+                <td><a href="#" class="myeditable" data-type="select" data-name="group" data-source="/groups" data-original-title="Select group"></a></td>
+            </tr>
+            <tr>
+                <td>Date of birth</td>
+                <td><a href="#" class="myeditable" data-type="date" data-name="dob" data-viewformat="dd/mm/yyyy" data-original-title="Select Date of birth"></a></td>
+            </tr>
+            <tr>
+                <td>Comments</td>
+                <td><a href="#" class="myeditable" data-type="textarea" data-name="comments" data-original-title="Enter comments"></a></td>
+            </tr>
+        </tbody>
+    </table>
+    <div>
+    <button id="save-btn" class="btn btn-primary">Save new user!</button>
+    <button id="reset-btn" class="btn pull-right">Reset</button>
+    </div>
+</div>
 
 <div class="container">
 
-      <h1>X-editable starter template</h1>
-
-      <div>
-        <span>Username:</span>
-        <a href="#" id="username" data-type="text" data-placement="right" data-title="Enter username">superuser</a>
-      </div>
-
-      <div>
-        <span>Status:</span>
-        <a href="#" id="status"></a>
-      </div>
 
 
     </div>
 
-
-
-
-<div>
-    ASA
-      <a href="#" id="comments" data-type="text" data-pk="1">awesome comment!</a>
-<script>
-$(function(){
-    $('#').editable({
-        url: '/post',
-        title: 'Enter comments',
-        rows: 10
-    });
-    $('.todo-header').editable();
-    $('.todo-content').editable();
-});
-</script>
-
-
-</div>
-
   <div id="accordion" class="list-group">
-<ul id="sortable" style="list-style: none; "> <!--padding:0; margin:0;-->
+
+
+      <ul id="sortable" style="list-style: none; "> <!--padding:0; margin:0;-->
     <li>
  <h3>TODO: Learn python well</h3>
-<div>
+<div>Pending
 <p>
 Mauris mauris ante, blandit et, ultrices a, suscipit eget, quam. Integer
 ut neque. Vivamus nisi metus, molestie vel, gravida in, condimentum sit
@@ -216,17 +325,26 @@ odio. Curabitur malesuada. Vestibulum a velit eu ante scelerisque vulputate.
 </div>
         </li>
 
+     <li>
+         <script>document.write(todoItemHTML(5));</script>
+
+     </li>
     <li>
-        <div class="panel panel-default">
+        <div class="panel panel-default" id="todo-item-4">
             <div class="panel-heading">
-                <span class="label label-default">Pending</span><u class="todo-header" data-type="text" data-pk="3">
+                <span class="label label-default">Pending</span>
+                <script>
+                    document.write(priorityButtonHTML(4, true));
+                </script>
+                  <u class="todo-header" data-type="text" data-pk="3">
                     <b class="panel-title" >Pick up milk</b></u>
+
             </div>
             <div class="panel-body todo-content" data-type="textarea">It is reeally important to pick up milk
             Really really</div>
             <div class="panel-footer">
-                  <button type="button" class="btn btn-success">Mark as completed</button>
-  <button type="button" class="btn btn-warning">Delete</button>
+                  <button type="button" class="btn btn-success" onclick="markCompleted(4);">Mark as completed</button>
+  <button type="button" class="btn btn-warning pull-right">Delete</button>
 
         </div>
 
@@ -236,14 +354,22 @@ odio. Curabitur malesuada. Vestibulum a velit eu ante scelerisque vulputate.
        <li>
         <div class="panel panel-success">
             <div class="panel-heading">
-                <span class="label label-success">Completed</span><u class="todo-header" data-type="text" data-pk="3">
-                    <b class="panel-title" >Pick up milk</b></u>
+                <span class="label label-success">Completed</span>
+                  <script>
+                    document.write(priorityButtonHTML(3, false));
+                </script>
+<u class="todo-header" data-type="text" data-pk="3">
+
+                <b class="panel-title" >Pick up milk</b></u>
+                    <em>(not editable any more)</em>
             </div>
-            <div class="panel-body todo-content" data-type="textarea">It is reeally important to pick up milk
+
+            <div class="panel-body " data-type="textarea">It is reeally important to pick up milk
             Really really super</div>
+
             <div class="panel-footer">
                   <button type="button" class="btn btn-sm">Revert to pending</button>
-  <button type="button" class="btn btn-warning">Delete</button>
+  <button type="button" class="btn btn-warning pull-right">Delete</button>
 
         </div>
 
@@ -281,5 +407,16 @@ mauris vel est.
 </div></li>
 </div>
 
+
+  <div class="container">
+
+<!-- Your content goes here -->
+
+  <hr>
+  <footer>
+    <p>&copy; Company 2014</p>
+  </footer>
+</div>
+<!-- /container -->
   </body>
 </html>
