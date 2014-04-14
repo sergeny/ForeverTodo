@@ -40,7 +40,12 @@ function ajax_createItem(item) {
 });
 
     $(function() {
-$(".todo-header").editable();
+$(".todo-header").editable({
+    success: function(response, newValue) {
+        alert(this.data-pk);
+    }
+    });
+
 $(".todo-content").editable();
 $( "#acscordion" ).accordion({  disabled: true, header: "h3" });
 $( "#sortable").sortable();
@@ -49,14 +54,13 @@ $( "#sortable").sortable();
 });
 
 
-    priorities=[];
-    completed=[];
-
-    function renderPriorityButton(item_id, priority, is_enabled) {
+    function renderPriorityButton(item_id, priority) {
         var clbl=["label-default", "label-primary", "label-danger"][priority];
         var ctxt=["Low priority", "Normal priority", "High priority"][priority];
+        var is_enabled = ! _items[item_id].completed; // Cannot change priority for completed items
+
         return "<button " + (is_enabled ? "":" disabled ") + " type=\"button\" class=\"btn " + clbl +
-                "\" id=\"btn-priority-" + item_id + "\" onclick=\"toggleItemPriority(" + item_id +
+                "\" id=\"btn-priority-" + item_id + "\" priority="+priority+" onclick=\"toggleItemPriority(" + item_id +
                 ", true); \">" + ctxt + "</button>";
     }
 
@@ -74,31 +78,34 @@ $( "#sortable").sortable();
                 priorities[item_id] = 0;
             }
 
-            $('#btn-priority-'+item_id).replaceWith(renderPriorityButton(item_id, priorities[item_id], is_enabled));
+            $('#btn-priority-'+item_id).replaceWith(renderPriorityButton(item_id, priorities[item_id]));
 
    }
 
 
     function markCompleted(item_id, is_completed) {
-        completed[item_id]=is_completed;
+        i = _items[item_id];
+        if (i.completed == is_completed) {
+            return;
+        }
+        i.completed = is_completed;
 
-        $('#todo-item-'+item_id).replaceWith(todoItemHTML(item_id));
-
+        $('#todo-item-'+item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
         $(".todo-header").editable();
-$(".todo-content").editable();
+        $(".todo-content").editable();
     }
 
 
 
    function renderItemHTML(item_id, title, text, priority, is_completed) {
 
-       return (is_completed ? "<div class=\"panel panel-success\" id=\"todo-item-"+item_id+"\">":
-                "<div class=\"panel panel-default\"               id=\"todo-item-"+item_id+"\">") +
+       return (is_completed ? "<div class=\"todo-item panel panel-success\" id=\"todo-item-"+item_id+"\">":
+                "<div class=\"todo-item panel panel-default\"               id=\"todo-item-"+item_id+"\">") +
             "<div class=\"panel-heading\">"+
                (is_completed ?
                 "<span class=\"label label-success\">Completed</span>" :
                "<span class=\"label label-default\">Pending</span>") +
-                  renderPriorityButton(item_id, priority, !is_completed) +
+                  renderPriorityButton(item_id, priority) +
 "<u " + (is_completed ? "" : "class=\"todo-header\"") +  "data-type=\"text\" data-pk=\""+item_id+"\">"+
                 "<b class=\"panel-title\" >" + title + "</b></u>" +
                (is_completed ?
@@ -107,35 +114,6 @@ $(".todo-content").editable();
             "</div>"+
             "<div class=\"panel-body " + (is_completed ? "" : " todo-content ")+
                "\" data-type=\"textarea\">" + text + "</div>"+
-            "<div class=\"panel-footer\">"+
-               (is_completed ?
-                  "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted("+item_id+", false);\">Revert to pending</button>" :
-                "<button type=\"button\" class=\"btn btn-success\" onclick=\"markCompleted("+item_id+", true);\">Mark as completed</button>") +
-     "<button type=\"button\" class=\"btn btn-warning pull-right\" >Delete</button>" +
-        "</div></div>";
-    }
-
-    function todoItemHTML(item_id) {
-       is_completed = completed[item_id];
-       if (is_completed==undefined) { is_completed = false; } // FIxME
-
-
-       return (is_completed ? "<div class=\"panel panel-success\" id=\"todo-item-"+item_id+"\">":
-                "<div class=\"panel panel-default\"               id=\"todo-item-"+item_id+"\">") +
-            "<div class=\"panel-heading\">"+
-               (is_completed ?
-                "<span class=\"label label-success\">Completed</span>" :
-               "<span class=\"label label-default\">Pending</span>") +
-                  renderPriorityButton(item_id, 0, !is_completed) +
-"<u " + (is_completed ? "" : "class=\"todo-header\"") +  "data-type=\"text\" data-pk=\""+item_id+"\">"+
-                "<b class=\"panel-title\" >Pick up milk</b></u>" +
-               (is_completed ?
-                 "<em>(not editable any more)</em>" :
-                 "<em>(click or tap to edit)</em>") +
-            "</div>"+
-            "<div class=\"panel-body " + (is_completed ? "" : " todo-content ")+
-               "\" data-type=\"textarea\">It is reeally important to pick up milk"+
-            "Really really super</div>"+
             "<div class=\"panel-footer\">"+
                (is_completed ?
                   "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted("+item_id+", false);\">Revert to pending</button>" :
