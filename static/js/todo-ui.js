@@ -92,6 +92,9 @@ function renderPriorityButton(item_id, priority) {
         ", true); \">" + ctxt + "</button>";
 }
 
+/*
+ * User toggled the priority of an item to the next value
+ */
 function toggleItemPriority(item_id, is_enabled) {
     setItemPriority(item_id, (_items[item_id].priority + 1) % 3);
 }
@@ -106,7 +109,9 @@ function setItemPriority(item_id, priority) {
     }
 }
 
-
+/*
+ * Attach jQuery X-editable callbacks for in-place editing of the item title and contents
+ */
 function attachCallbacks(item_id) {
     var element = $('#todo-item-' + item_id);
     element.find('.todo-header').editable({ // always success, url not specified, doing ajax call on our own
@@ -117,22 +122,26 @@ function attachCallbacks(item_id) {
     });
 }
 
+/*
+ * User chose to mark an item as completed or revert to pending (is_completed is true or false, respectively)
+ */
 function markCompleted(item_id, is_completed) {
-    i = _items[item_id];
-    if (i.completed == is_completed) {
-        return;
+    var result = getEditableCallback(item_id, 'completed')(undefined, is_completed);
+    if (result == undefined) { // success: update the ui
+        // TODO: do without replaceWith?
+        $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
+        // Reattach jQuery (X-editable) handlers
+        attachCallbacks(item_id);
+    } else { // ajax or validation failed; value not modified
+        alert(result); // TODO: show gracefully
     }
-    i.completed = is_completed;
-
-    // TODO: do without replaceWith?
-    $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
-
-    // Reattach jQuery (X-editable) handlers
-    attachCallbacks(item_id);
-
 }
 
-
+/*
+ * Returns full html code for the div containing the item.
+ *
+ * This function has no side effects.
+ */
 function renderItemHTML(item_id, title, text, priority, is_completed) {
 
     return (is_completed ? "<div class=\"todo-item panel panel-success\" id=\"todo-item-" + item_id + "\">" :
@@ -159,7 +168,9 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
 }
 
 /*
- returns a dictionary of pairs { <item_id> : <HTML code for a rendered div> }
+ * Returns a dictionary of pairs { <item_id> : <HTML code for a rendered div> }
+ *
+ * This function has no side effects.
  */
 function renderAllItems() {
     var result = {};
