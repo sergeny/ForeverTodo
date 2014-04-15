@@ -1,6 +1,17 @@
 {%  extends "base.html" %}
 {%  load staticfiles %}
 
+{% block head %}
+    <!-- http://www.jqueryrain.com/?V4r9LjZ3 -->
+    {{ block.super }}
+
+    <!-- Pickadate jQuery plugin, https://github.com/amsul/pickadate.js, http://www.jqueryrain.com/?V4r9LjZ3 -->
+    <link href="{% static 'css/pickadate/classic.css' %}" rel="stylesheet">
+    <link href="{% static 'css/pickadate/classic.date.css' %}" rel="stylesheet">
+    <script src="{%  static 'js/pickadate/picker.js' %}"></script>
+    <script src="{%  static 'js/pickadate/picker.date.js' %}"></script>
+
+{% endblock %}
 
 {%  block main %}
   <div class="jumbotron">
@@ -11,9 +22,7 @@
 
       <p class="lead">Gone are the days when you had to struggle, pinning notes to your refrigerator with those little magnets. Leverage the power of the modern web to never ever forget anything again!</p>
 
-
       </div>
-
 
           <div class="btn-group btn-group-justified">
  <div class="btn-group">
@@ -27,7 +36,12 @@
     <button type="button" class="btn btn-default" onclick="$('li').tsort('.btn', {attr: 'priority'});">Sort by priority</button>
   </div>
   <div class="btn-group">
-    <button type="button" class="btn btn-default" onclick="$('li').tsort('.todo-item', {attr:'id', order:'desc'});">Sort by date</button>
+    <button type="button" class="btn btn-default" onclick="$('li').tsort('.datepicker', {sortFunction: function(a, b) {
+        var d1=a.e.find('.datepicker').pickadate('picker').get();
+        var d2=b.e.find('.datepicker').pickadate('picker').get();
+
+        return d1 > d2;
+            }});">Sort by date</button>
   </div>
 </div>
 
