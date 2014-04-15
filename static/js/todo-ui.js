@@ -5,10 +5,10 @@
 
 
 _items = {
-    2: { title: 'Pick up milk', text: 'Really pick up milk', priority: 0, completed: false },
-    3: { title: 'Learn python', text: 'Really learn python', priority: 1, completed: true },
-    4: { title: 'Pick up kefir', text: 'Really pick up kefir', priority: 2, completed: false },
-    5: { title: 'Learn django', text: 'Really learn django', priority: 0, completed: true }
+    2: { title: 'Pick up milk', text: 'Really pick up milk', priority: 0, expires: new Date(2014, 10, 5), completed: false },
+    3: { title: 'Learn python', text: 'Really learn python', priority: 1, expires: undefined, completed: true },
+    4: { title: 'Pick up kefir', text: 'Really pick up kefir', priority: 2, expires: undefined, completed: false },
+    5: { title: 'Learn django', text: 'Really learn django', priority: 0, expires: new Date(2010, 5, 10), completed: true }
 }
 
 /*
@@ -120,6 +120,18 @@ function attachCallbacks(item_id) {
     element.find('.todo-content').editable({ // always success, url not specified, doing ajax call on our own
         success: getEditableCallback(item_id, 'text')
     });
+
+    var f = getEditableCallback(item_id, 'expires');
+    var date=_items[item_id].expires;
+    var picker = element.find('.datepicker').pickadate({
+        clear: 'Never expires',
+        onSet: function(context) {
+            f(undefined, context.select); // or new Date(context.select)? unless it is undefined, of course
+        }
+    }).pickadate('picker').clear();
+    if (date != undefined) {
+        picker.set('select', date);
+    }
 }
 
 /*
@@ -159,10 +171,11 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
         "</div>" +
         "<div class=\"panel-body " + (is_completed ? "" : " todo-content ") +
         "\" data-type=\"textarea\" data-pk=\"" + item_id + "\">" + text + "</div>" +
-        "<div class=\"panel-footer\">" +
+        "<div class=\"panel-footer\" style=\"position: relative\">" +
         (is_completed ?
             "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted(" + item_id + ", false);\">Revert to pending</button>" :
             "<button type=\"button\" class=\"btn btn-success\" onclick=\"markCompleted(" + item_id + ", true);\">Mark as completed</button>") +
+        "&nbsp;Item expires: <input type=\"text\" class=\"datepicker\" autocomplete=\"off\" /><em>(click or tap to edit)</em>" +
         "<button type=\"button\" class=\"btn btn-warning pull-right\" >Delete</button>" +
         "</div></div>";
 }
