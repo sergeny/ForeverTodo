@@ -123,17 +123,24 @@ function attachCallbacks(item_id) {
         success: getEditableCallback(item_id, 'text')
     });
 
+
     var f = getEditableCallback(item_id, 'expires');
     var date=_items[item_id].expires;
     var picker = element.find('.datepicker').pickadate({
-        clear: 'Never expires',
-        onSet: function(context) {
-            f(undefined, context.select); // or new Date(context.select)? unless it is undefined, of course
-        }
+        clear: 'Never expires'
     }).pickadate('picker').clear();
-    if (date != undefined) {
+    if (date != undefined) { // Populate the input field with the initial date
         picker.set('select', date);
     }
+
+    if (!_items[item_id].completed) { // Item not done yet --> the date can be changed
+        picker.on('set', function(context) {
+            f(undefined, context.select); // or new Date(context.select)? unless it is undefined, of course
+        });
+    } else { // Item done ---> the date is fixed. Disable the picker.
+        picker.stop(); // We have still created the picker to consistently populate the input field
+    }
+
 }
 
 /*
@@ -145,7 +152,7 @@ function markCompleted(item_id, is_completed) {
         // TODO: do without replaceWith?
         var i = _items[item_id];
         $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
-        // Reattach jQuery (X-editable) handlers
+        // Reattach event handlers
         attachCallbacks(item_id);
     } else { // ajax or validation failed; value not modified
         alert(result); // TODO: show gracefully
@@ -188,7 +195,9 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
         (is_completed ?
             "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted(" + item_id + ", false);\">Revert to pending</button>" :
             "<button type=\"button\" class=\"btn btn-success\" onclick=\"markCompleted(" + item_id + ", true);\">Mark as completed</button>") +
-        "&nbsp;Item expires: <input type=\"text\" class=\"datepicker\" autocomplete=\"off\" /><em>(click or tap to edit)</em>" +
+        "&nbsp;Item expires: <input type=\"text\" class=\"datepicker\" autocomplete=\"off\" " +
+        (is_completed ? " disabled=true ": "") + " /><em>" +
+        (is_completed ? "(not editable any more)" : "(click or tap to edit)") + "</em>" +
         "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\"deleteItem(" + item_id + ");\" >Delete</button>" +
         "</div></div>";
 }
