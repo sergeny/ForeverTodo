@@ -21,7 +21,7 @@ $(document).ready(function () {
  returns true on success, false on failure
  */
 function ajax_deleteItem(item_id) {
-    return false;
+    return true;
 }
 /*
  item_diff only contains those fields that are modified
@@ -152,6 +152,16 @@ function markCompleted(item_id, is_completed) {
     }
 }
 
+function deleteItem(item_id) {
+    var result = ajax_deleteItem(item_id);
+    if (result) { // success; update the ui
+        delete _items[item_id]; // remove the data
+        $('#todo-item-'+item_id).remove(); // remove the ui
+    } else {
+        alert("Server error while trying to delete the item"); // TODO: prettify
+    }
+}
+
 /*
  * Returns full html code for the div containing the item.
  *
@@ -179,7 +189,7 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
             "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted(" + item_id + ", false);\">Revert to pending</button>" :
             "<button type=\"button\" class=\"btn btn-success\" onclick=\"markCompleted(" + item_id + ", true);\">Mark as completed</button>") +
         "&nbsp;Item expires: <input type=\"text\" class=\"datepicker\" autocomplete=\"off\" /><em>(click or tap to edit)</em>" +
-        "<button type=\"button\" class=\"btn btn-warning pull-right\" >Delete</button>" +
+        "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\"deleteItem(" + item_id + ");\" >Delete</button>" +
         "</div></div>";
 }
 
