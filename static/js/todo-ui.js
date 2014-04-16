@@ -143,6 +143,7 @@ function markCompleted(item_id, is_completed) {
     var result = getEditableCallback(item_id, 'completed')(undefined, is_completed);
     if (result == undefined) { // success: update the ui
         // TODO: do without replaceWith?
+        var i = _items[item_id];
         $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
         // Reattach jQuery (X-editable) handlers
         attachCallbacks(item_id);
