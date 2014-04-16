@@ -26,22 +26,17 @@
 
           <div class="btn-group btn-group-justified">
  <div class="btn-group">
-    <button type="button" class="btn btn-primary" onclick="$('#div-new-todo-item').show();">Create new item</button>
+    <button type="button" class="btn btn-primary" onclick="onCreateNewItem();">Create new item</button>
   </div>
 
   <div class="btn-group">
-    <button type="button" class="btn btn-default" onclick="$('li').tsort('.panel-title');">Sort by name</button>
+    <button type="button" class="btn btn-default" onclick="uiSortByTitle();">Sort by name</button>
   </div>
   <div class="btn-group">
-    <button type="button" class="btn btn-default" onclick="$('li').tsort('.btn', {attr: 'priority'});">Sort by priority</button>
+    <button type="button" class="btn btn-default" onclick="uiSortByPriority();">Sort by priority</button>
   </div>
   <div class="btn-group">
-    <button type="button" class="btn btn-default" onclick="$('li').tsort('.datepicker', {sortFunction: function(a, b) {
-        var d1=a.e.find('.datepicker').pickadate('picker').get();
-        var d2=b.e.find('.datepicker').pickadate('picker').get();
-
-        return d1 > d2;
-            }});">Sort by date</button>
+    <button type="button" class="btn btn-default" onclick="uiSortByDate();">Sort by date</button>
   </div>
 </div>
 
@@ -86,10 +81,10 @@
 
     </div>
 
-  <div id="accordion" class="list-group">
+  <div class="list-group">
 
-
-      <ul id="sortable" style="list-style: none; "> <!--padding:0; margin:0;-->
+    <!-- Allow the user to reorder the todos by drag and drop -->
+      <ul id="main_item_list" style="list-style: none; "> <!--padding:0; margin:0;-->
 
      <script>
          var r = renderAllItems();
