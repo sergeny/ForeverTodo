@@ -196,3 +196,53 @@ function renderAllItems() {
     }
     return result;
 }
+
+/*
+ * User requested to create a new item. Create something really standard, then let the user edit.
+ */
+function onCreateNewItem() {
+    var item = {
+        title: 'New item: Enter the title.',
+        text: 'New item: Enter the description of the item.',
+        priority: 0,
+        expires: undefined,
+        completed: false
+    }
+    item_id = ajax_createItem(item);
+    if (item_id != undefined) {
+        if (item_id in _items) {
+            alert("Assertion failed! Server returned existing id: " + item_id);
+            return;
+        }
+        // update the model
+        window._items[item_id] = item;
+
+        // display the item
+        $('#main_item_list').prepend("<li>" + renderItemHTML(item_id, item.title, item.text, item.priority, item.completed) + "</li>");
+        attachCallbacks(item_id);
+
+    } else {
+        alert("Server error while creating an item."); // TODO: prettify
+    }
+
+}
+
+/*
+ * Sort todo items by various attributes using the Tinysort jQuery plugin.
+ * We are really just permuting elements in the DOM; all bindings remain in place.
+ */
+
+function uiSortByTitle() {
+    $('li').tsort('.panel-title');
+}
+
+function uiSortByPriority() {
+    $('li').tsort('.btn', {attr: 'priority'});
+}
+
+function uiSortByDate() {
+    $('li').tsort('.datepicker', {sortFunction: function(a, b) { // a.e, b.e are jQuery objects to be compared
+        return a.e.find('.datepicker').pickadate('picker').get() >
+            b.e.find('.datepicker').pickadate('picker').get();
+    }});
+}
