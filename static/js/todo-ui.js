@@ -3,13 +3,19 @@
  * The frontend side of the ForeverTodo application for managing lists of todo items.
  */
 
-
 _items = {
     2: { title: 'Pick up milk', text: 'Really pick up milk', priority: 0, expires: new Date(2014, 10, 5), completed: false },
     3: { title: 'Learn python', text: 'Really learn python', priority: 1, expires: undefined, completed: true },
     4: { title: 'Pick up kefir', text: 'Really pick up kefir', priority: 2, expires: undefined, completed: false },
     5: { title: 'Learn django', text: 'Really learn django', priority: 0, expires: new Date(2010, 5, 10), completed: true }
 }
+
+
+$(document).ready(function () {
+    //toggle `popup` / `inline` mode
+    $.fn.editable.defaults.mode = 'inline';
+});
+
 
 /*
  returns true on success, false on failure
@@ -28,16 +34,12 @@ function ajax_modifyItem(item_id, item_diff) {
  returns item_id received from the server on success, undefined on failure
  */
 function ajax_createItem(item) {
-    return 8;
+    item_id = 8;
+    return item_id;
 }
 
 
-$(document).ready(function () {
-    //toggle `popup` / `inline` mode
-    $.fn.editable.defaults.mode = 'inline';
 
-
-});
 
 
 /*
@@ -76,7 +78,7 @@ $(function () {
      });*/
 
 
-    $("#sortable").sortable();
+    $("#main_item_list").sortable();
 
 
 });
