@@ -5,8 +5,8 @@
 
 _items = {
     2: { title: 'Pick up milk', text: 'Really pick up milk', priority: 0, expires: new Date(2014, 10, 5), completed: false },
-    3: { title: 'Learn python', text: 'Really learn python', priority: 1, expires: undefined, completed: true },
-    4: { title: 'Pick up kefir', text: 'Really pick up kefir', priority: 2, expires: undefined, completed: false },
+    3: { title: 'Learn python', text: 'Really learn python', priority: 1, expires: null, completed: true },
+    4: { title: 'Pick up kefir', text: 'Really pick up kefir', priority: 2, expires: null, completed: false },
     5: { title: 'Learn django', text: 'Really learn django', priority: 0, expires: new Date(2010, 5, 10), completed: true }
 }
 
@@ -176,7 +176,8 @@ function deleteItem(item_id) {
  */
 function renderItemHTML(item_id, title, text, priority, is_completed) {
 
-    return (is_completed ? "<div class=\"todo-item panel panel-success\" id=\"todo-item-" + item_id + "\">" :
+    return "<li data-pk=\"" + item_id + "\">" +
+        (is_completed ? "<div class=\"todo-item panel panel-success\" id=\"todo-item-" + item_id + "\">" :
         "<div class=\"todo-item panel panel-default\"               id=\"todo-item-" + item_id + "\">") +
         "<div class=\"panel-heading\">" +
         (is_completed ?
@@ -199,7 +200,8 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
         (is_completed ? " disabled=true ": "") + " /><em>" +
         (is_completed ? "(not editable any more)" : "(click or tap to edit)") + "</em>" +
         "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\"deleteItem(" + item_id + ");\" >Delete</button>" +
-        "</div></div>";
+        "</div></div> +" +
+        "</li>";
 }
 
 /*
@@ -224,7 +226,7 @@ function onCreateNewItem() {
         title: 'New item: Enter the title.',
         text: 'New item: Enter the description of the item.',
         priority: 0,
-        expires: undefined,
+        expires: null,
         completed: false
     }
     item_id = ajax_createItem(item);
@@ -237,7 +239,7 @@ function onCreateNewItem() {
         window._items[item_id] = item;
 
         // display the item
-        $('#main_item_list').prepend("<li>" + renderItemHTML(item_id, item.title, item.text, item.priority, item.completed) + "</li>");
+        $('#main_item_list').prepend(renderItemHTML(item_id, item.title, item.text, item.priority, item.completed));
         attachCallbacks(item_id);
 
     } else {
@@ -251,17 +253,49 @@ function onCreateNewItem() {
  * We are really just permuting elements in the DOM; all bindings remain in place.
  */
 
+/*
+ * This is a helper function. Returns a jQuery list of all elements containing user's items.
+ */
+function uiGetItems() {
+    return $('#main_item_list').find('li');
+}
+
+/*
+ * This is a helper function.
+ * It creates a comparator function to be used by the TinySort plugin (http://tinysort.sjeiti.com/).
+ * The function should accept two arguments a1 and a2 such that a1.e and a2.e are the jQuery objects to be sorted.
+ * It should return -1, 0, or 1. The sorting is done by the associated data in _items using the field 'field'.
+ * If null_is_last is set to true, all null values will go to the end (typically null is the smallest value).
+ * This is useful for e.g. expiration dates, to show first all entries with set dates in sorted order.
+ */
+function sortBy(field, null_is_last) {
+    if (!null_is_last) {
+        return function(a1, a2) {
+            var value1 = _items[a1.e.attr('data-pk')][field];
+            var value2 = _items[a2.e.attr('data-pk')][field];
+            return value1==value2 ? 0 : (value1>value2 ? 1 : -1);
+        }
+    } else {
+        return function(a1, a2) {
+            var value1 = _items[a1.e.attr('data-pk')][field];
+            var value2 = _items[a2.e.attr('data-pk')][field];
+            if (!value1) { return 1;}
+            if (!value2) { return -1;}
+            return value1==value2 ? 0 : (value1>value2 ? 1 : -1);
+        }
+    }
+}
+
 function uiSortByTitle() {
-    $('li').tsort('.panel-title');
+      uiGetItems().tsort('.datepicker', {sortFunction: sortBy('title', false)});;
+//    uiGetItems().tsort('.panel-title'); - works, but let's not use info in DOM elements for sorting
 }
 
 function uiSortByPriority() {
-    $('li').tsort('.btn', {attr: 'priority'});
+    uiGetItems().tsort('.datepicker', {sortFunction: sortBy('priority', false)});;
+//    uiGetItems().tsort('.btn', {attr: 'priority'}); - works, but let's not use info in DOM elements for sorting
 }
 
 function uiSortByDate() {
-    $('li').tsort('.datepicker', {sortFunction: function(a, b) { // a.e, b.e are jQuery objects to be compared
-        return a.e.find('.datepicker').pickadate('picker').get() >
-            b.e.find('.datepicker').pickadate('picker').get();
-    }});
+    uiGetItems().tsort('.datepicker', {sortFunction: sortBy('expires', true)});;
 }
