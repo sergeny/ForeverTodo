@@ -1,10 +1,19 @@
+{% extends "site_base.html" %}
 {%  load staticfiles %}
+
 
 <!DOCTYPE html>
 <html>
 <head>
-    {%  block head %}
-        <title>Forever Todo</title>
+    {%  block head_title %}Forever Todo{% endblock %}
+
+{% block style_base %}
+            <link href="{% static "pinax/css/theme.css" %}" rel="stylesheet">
+    {% comment %}       <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">{% endcomment %}
+            <link href="{% static "font-awesome/css/font-awesome.css" %}" rel="stylesheet">
+{% endblock %}
+
+    {% block extra_head %}
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!-- bootstrap -->
         <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
@@ -27,8 +36,12 @@
         <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 
         <!-- x-editable (bootstrap version) -->
-        <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <!--    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
         <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+-->
+        <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet" />
+        <script src="{%  static 'js/bootstrap-editable.min.js' %}"></script>
+
 
         <script src="{%  static 'js/jquery.tinysort.min.js' %}"></script>
 
@@ -69,23 +82,20 @@ $('li').tsort();
 </head>
 <body>
 {%  block body %}
-    {% block navbar %}
+    {%  comment %}{% block navbar %}
         {%  include "_navbar.html" %}
      {%  endblock %}
-
+{%  endcomment %}
     {%  block main %}
     {%  endblock %}
 
 
-
-    {%  block footer %}
-        <div class="container">
-            <hr>
-            <footer>
-                <p>&copy; Sergey Orshanskiy, 2014</p>
-            </footer>
-        </div>
-    {% endblock footer %}
+      {% block script_base %}
+ {% comment %}           <script src="{% block jquery_src %}{% static "pinax/js/jquery.js" %}{% endblock %}"></script>
+            <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>{% endcomment %}
+            <script src="{% static "pinax/js/theme.js" %}"></script>
+            {% block extra_script %}{% endblock %}
+        {% endblock %}
 
 {%  endblock body %}
 </body>

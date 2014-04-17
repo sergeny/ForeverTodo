@@ -48,9 +48,22 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'tastypie',
-
+    'account',
+    'pinax_theme_bootstrap',
+    'bootstrapform',
+    'pinax_theme_bootstrap_account',
     'app_todo',
 )
+
+TEMPLATE_CONTEXT_PROCESSORS =  (
+"django.contrib.auth.context_processors.auth",
+"django.core.context_processors.debug",
+"django.core.context_processors.i18n",
+"django.core.context_processors.media",
+"django.core.context_processors.static",
+"django.core.context_processors.tz",
+"django.contrib.messages.context_processors.messages",
+"account.context_processors.account",)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -59,6 +72,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "account.middleware.LocaleMiddleware",
+    "account.middleware.TimezoneMiddleware",
 )
 
 ROOT_URLCONF = 'ForeverTodo.urls'
@@ -99,3 +114,6 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
 #    '/var/www/static/',
 )
+
+
+THEME_ACCOUNT_CONTACT_EMAIL = "no-contact@sad.com"
