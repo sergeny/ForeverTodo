@@ -1,0 +1,26 @@
+{% extends "theme_bootstrap/base.html" %}
+
+
+{% comment %}
+{% block navbar_class %}navbar-inverse navbar-fixed-top{% endblock %}
+{% block site_brand %}<a class="navbar-brand" href="{% url "home" %}">ForeverTodo</a>{% endblock %}
+{% endcomment %}
+
+
+
+{% comment %}
+{% block nav %}
+<ul class="nav navbar-nav navbar-left">
+<li><a href="#">Link 1</a>
+<li><a href="#">Link 2</a>
+</ul>
+
+
+{% endblock %}
+{% endcomment %}
+{%  block footer %}
+
+                <p>&copy; Sergey Orshanskiy, 2014</p>
+
+{% endblock %}
+
