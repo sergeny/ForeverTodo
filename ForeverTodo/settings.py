@@ -52,6 +52,7 @@ INSTALLED_APPS = (
     'pinax_theme_bootstrap',
     'bootstrapform',
     'pinax_theme_bootstrap_account',
+    'djrill',
     'app_todo',
 )
 
@@ -119,11 +120,13 @@ STATICFILES_DIRS = (
 THEME_ACCOUNT_CONTACT_EMAIL = "no-contact@sad.com"
 
 
+
+
 ### for Heroku deployment ###
 
 # Parse database configuration from $DATABASE_URL
-import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
+#import dj_database_url
+#DATABASES['default'] =  dj_database_url.config()
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -140,3 +143,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+
+### Sending email through an external API ###
+MANDRILL_API_KEY = os.environ['MANDRILL_API_KEY']
+
+EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
