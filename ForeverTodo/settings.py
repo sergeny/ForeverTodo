@@ -52,7 +52,6 @@ INSTALLED_APPS = (
     'pinax_theme_bootstrap',
     'bootstrapform',
     'pinax_theme_bootstrap_account',
-    'djrill',
     'app_todo',
 )
 
@@ -146,6 +145,10 @@ STATICFILES_DIRS = (
 
 
 ### Sending email through an external API ###
-MANDRILL_API_KEY = os.environ['MANDRILL_API_KEY']
 
-EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+
