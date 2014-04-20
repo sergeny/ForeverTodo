@@ -3,7 +3,7 @@
  * The frontend side of the ForeverTodo application for managing lists of todo items.
  */
 
-_items = {
+window._items = {
     2: { title: 'Pick up milk', text: 'Really pick up milk', priority: 0, expires: new Date(2014, 10, 5), completed: false },
     3: { title: 'Learn python', text: 'Really learn python', priority: 1, expires: null, completed: true },
     4: { title: 'Pick up kefir', text: 'Really pick up kefir', priority: 2, expires: null, completed: false },
@@ -16,6 +16,37 @@ $(document).ready(function () {
     $.fn.editable.defaults.mode = 'inline';
 });
 
+// FIXME: cache????
+var api_base="/api/v1/todo/";
+var user_str_prefix="/api/v1/user/";
+var user_str=undefined;
+function ajax_getAllItems(current_user_id) {
+    user_str=user_str_prefix + current_user_id + '/';
+    console.log("loading json, user_str "+user_str);
+    $.ajax({
+        cache: false,
+        url: api_base + "?limit=999999",
+        dataType: "json",
+        success: function(data) {
+            window._items = {}
+            for (var i = 0, l = data.objects.length; i<l; i++) {
+                var item = data.objects[i];
+                // convert from string such as "Sun, 20 Apr 2014 01:19:24 +0000" to Date()
+                if (item.expires) { // if it is null, leave it. Don't change to Dec 1969.
+                    item.expires = new Date(item.expires);
+                }
+                window._items[item.id] = item;
+
+                // FIXME: refactor
+                //update the ui
+                // IMPORTANT: update the ui only after the data has been received!
+                $('#main_item_list').append(renderItemHTML(item.id, item.title, item.text, item.priority, item.completed));
+                attachCallbacks(item.id);
+            }
+        }
+
+    });
+}
 
 /*
  returns true on success, false on failure
@@ -31,11 +62,36 @@ function ajax_modifyItem(item_id, item_diff) {
     return true;
 }
 /*
- returns item_id received from the server on success, undefined on failure
+ returns nothing
  */
-function ajax_createItem(item) {
-    item_id = 8;
-    return item_id;
+function ajax_createItem_async(item) {
+    item.user = user_str;
+    var str = JSON.stringify(item);
+    var item_id;
+    $.ajax({
+        type:"POST",
+        url:api_base,
+        data:str,
+        success: function(data, status, xhr) {
+            var location = xhr.getResponseHeader("Location");
+            // Location is a URL such as http://server.com/api/v1/todo/9/
+            // Technically we could issue another ajax request to properly obtain the ID
+            // But let's just parse the URL. (Theoretically may have issues with maintainability.)
+            var s = location.split('/')
+            item_id=parseInt(s[s.length - 2]);
+            if (isNaN(item_id)) {
+                throw "Error while parsing "+location+" to get item id";
+            } else if (item_id in window._items) {
+                throw "Server returned duplicate item id " + item_id + " for a new element";
+            } else {
+                _items[item_id] = item;
+                // update the ui
+                $('#main_item_list').prepend(renderItemHTML(item_id, item.title, item.text, item.priority, item.completed));
+                attachCallbacks(item_id);
+            }
+        },
+        contentType: 'application/json'
+    });
 }
 
 
@@ -48,13 +104,13 @@ function ajax_createItem(item) {
  * The ajax call will only include the new data.
  * If the ajax call fails, the function returns an error message, so that X-editable won't update the ui.
  *
- * Binding: The function also updates the data in _items.
+ * Binding: The function also updates the data in window._items.
  */
 function getEditableCallback(item_id, field) {
     return function (response, newValue) {
         var result = ajax_modifyItem(item_id, { field: newValue });
         if (result) { // ajax success
-            _items[item_id][field] = newValue;
+            window._items[item_id][field] = newValue;
         } else {
             return "Error while sending data to the server";
         }
@@ -63,31 +119,16 @@ function getEditableCallback(item_id, field) {
 
 
 $(function () {
-    for (item_id in _items) {
-        attachCallbacks(item_id);
-    }
-    /*
-     $(".todo-header").each(function(i, obj) {
-     $(this).editable({ // always success, url not specified, doing ajax call on our own
-     success: getEditableCallback(this.getAttribute('data-pk'), 'title')
-     });
-     });
-     $(".todo-content").each(function(i, obj) {
-     $(this).editable({ // always success, url not specified, doing ajax call on our own
-     success: getEditableCallback(this.getAttribute('data-pk'), 'text')
-     });*/
-
-
+    // No good reason to put it here, since we are waiting for the ajax call to load anyway
+    // However, sortable can be initialized before everything is loaded...
     $("#main_item_list").sortable();
-
-
 });
 
 
 function renderPriorityButton(item_id, priority) {
     var clbl = ["label-default", "label-primary", "label-danger"][priority];
     var ctxt = ["Low priority", "Normal priority", "High priority"][priority];
-    var is_enabled = !_items[item_id].completed; // Cannot change priority for completed items
+    var is_enabled = !window._items[item_id].completed; // Cannot change priority for completed items
 
     return "<button " + (is_enabled ? "" : " disabled ") + " type=\"button\" class=\"btn " + clbl +
         "\" id=\"btn-priority-" + item_id + "\" priority=" + priority + " onclick=\"toggleItemPriority(" + item_id +
@@ -98,7 +139,7 @@ function renderPriorityButton(item_id, priority) {
  * User toggled the priority of an item to the next value
  */
 function toggleItemPriority(item_id, is_enabled) {
-    setItemPriority(item_id, (_items[item_id].priority + 1) % 3);
+    setItemPriority(item_id, (window._items[item_id].priority + 1) % 3);
 }
 function setItemPriority(item_id, priority) {
 
@@ -125,7 +166,7 @@ function attachCallbacks(item_id) {
 
 
     var f = getEditableCallback(item_id, 'expires');
-    var date=_items[item_id].expires;
+    var date=window._items[item_id].expires;
     var picker = element.find('.datepicker').pickadate({
         clear: 'Never expires'
     }).pickadate('picker').clear();
@@ -133,7 +174,7 @@ function attachCallbacks(item_id) {
         picker.set('select', date);
     }
 
-    if (!_items[item_id].completed) { // Item not done yet --> the date can be changed
+    if (!window._items[item_id].completed) { // Item not done yet --> the date can be changed
         picker.on('set', function(context) {
             f(undefined, context.select); // or new Date(context.select)? unless it is undefined, of course
         });
@@ -150,7 +191,7 @@ function markCompleted(item_id, is_completed) {
     var result = getEditableCallback(item_id, 'completed')(undefined, is_completed);
     if (result == undefined) { // success: update the ui
         // TODO: do without replaceWith?
-        var i = _items[item_id];
+        var i = window._items[item_id];
         $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
         // Reattach event handlers
         attachCallbacks(item_id);
@@ -162,7 +203,7 @@ function markCompleted(item_id, is_completed) {
 function deleteItem(item_id) {
     var result = ajax_deleteItem(item_id);
     if (result) { // success; update the ui
-        delete _items[item_id]; // remove the data
+        delete window._items[item_id]; // remove the data
         $('#todo-item-'+item_id).remove(); // remove the ui
     } else {
         alert("Server error while trying to delete the item"); // TODO: prettify
@@ -211,8 +252,9 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
  */
 function renderAllItems() {
     var result = {};
-    for (var item_id in _items) {
-        i = _items[item_id];
+    for (var item_id in window._items) {
+        i = window._items[item_id];
+        console.log("renderAllItems "+item_id);
         result[item_id] = renderItemHTML(item_id, i.title, i.text, i.priority, i.completed);
     }
     return result;
@@ -229,23 +271,7 @@ function onCreateNewItem() {
         expires: null,
         completed: false
     }
-    item_id = ajax_createItem(item);
-    if (item_id != undefined) {
-        if (item_id in _items) {
-            alert("Assertion failed! Server returned existing id: " + item_id);
-            return;
-        }
-        // update the model
-        window._items[item_id] = item;
-
-        // display the item
-        $('#main_item_list').prepend(renderItemHTML(item_id, item.title, item.text, item.priority, item.completed));
-        attachCallbacks(item_id);
-
-    } else {
-        alert("Server error while creating an item."); // TODO: prettify
-    }
-
+    ajax_createItem_async(item);
 }
 
 /*
@@ -264,21 +290,21 @@ function uiGetItems() {
  * This is a helper function.
  * It creates a comparator function to be used by the TinySort plugin (http://tinysort.sjeiti.com/).
  * The function should accept two arguments a1 and a2 such that a1.e and a2.e are the jQuery objects to be sorted.
- * It should return -1, 0, or 1. The sorting is done by the associated data in _items using the field 'field'.
+ * It should return -1, 0, or 1. The sorting is done by the associated data in window._items using the field 'field'.
  * If null_is_last is set to true, all null values will go to the end (typically null is the smallest value).
  * This is useful for e.g. expiration dates, to show first all entries with set dates in sorted order.
  */
 function sortBy(field, null_is_last) {
     if (!null_is_last) {
         return function(a1, a2) {
-            var value1 = _items[a1.e.attr('data-pk')][field];
-            var value2 = _items[a2.e.attr('data-pk')][field];
+            var value1 = window._items[a1.e.attr('data-pk')][field];
+            var value2 = window._items[a2.e.attr('data-pk')][field];
             return value1==value2 ? 0 : (value1>value2 ? 1 : -1);
         }
     } else {
         return function(a1, a2) {
-            var value1 = _items[a1.e.attr('data-pk')][field];
-            var value2 = _items[a2.e.attr('data-pk')][field];
+            var value1 = window._items[a1.e.attr('data-pk')][field];
+            var value2 = window._items[a2.e.attr('data-pk')][field];
             if (!value1) { return 1;}
             if (!value2) { return -1;}
             return value1==value2 ? 0 : (value1>value2 ? 1 : -1);
