@@ -42,11 +42,20 @@ class UserObjectsOnlyAuthorization(Authorization):
         return bundle.obj.user == bundle.request.user
 
     def delete_list(self, object_list, bundle):
+        allowed = []
+
+        # Since they may not all be deleted, iterate over them.
+        for obj in object_list:
+            if obj.user == bundle.request.user:
+                allowed.append(obj)
+
+        return allowed
         # Sorry user, no deletes for you!
-        raise Unauthorized("Sorry, no deletes.")
+        # raise Unauthorized("Sorry, no deletes.")
 
     def delete_detail(self, object_list, bundle):
-        raise Unauthorized("Sorry, no deletes.")
+        return bundle.obj.user == bundle.request.user
+        #  raise Unauthorized("Sorry, no deletes.")
 
 
 class UserResource(ModelResource):
@@ -71,6 +80,7 @@ class TodoItemResource(ModelResource):
     class Meta:
         queryset = TodoItem.objects.all()
         resource_name='todo'
+        # allowed_methods = ['get', 'post', 'delete']
         authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
         authorization = UserObjectsOnlyAuthorization()
 
