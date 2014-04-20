@@ -87,11 +87,14 @@
       <ul id="main_item_list" style="list-style: none; "> <!--padding:0; margin:0;-->
 
      <script> // FIXME. Right now it inserts <li> nodes after the <script> nodes, which gets weird
+     {% if request.user.is_authenticated %}
+        ajax_getAllItems({{ request.user.pk }});
+     {%  endif %}
         // after we prepend some more <li> nodes before the <script>, when the user clicks "Create new..."
-         var r = renderAllItems();
+        /* var r = renderAllItems();
          for (var id in r) {
              document.write(r[id]);
-         }
+         }*/
 
      </script>
     </ul>
