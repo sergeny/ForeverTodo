@@ -3,6 +3,10 @@
  * The frontend side of the ForeverTodo application for managing lists of todo items.
  */
 
+// TODO: BROWSER CACHE CONTROL (index.html etc)
+// TODO: WRAP INTO A FUNCTION
+
+
 window._items = {
     2: { title: 'Pick up milk', text: 'Really pick up milk', priority: 0, expires: new Date(2014, 10, 5), completed: false },
     3: { title: 'Learn python', text: 'Really learn python', priority: 1, expires: null, completed: true },
@@ -48,11 +52,23 @@ function ajax_getAllItems(current_user_id) {
     });
 }
 
-/*
- returns true on success, false on failure
- */
-function ajax_deleteItem(item_id) {
-    return true;
+function ajax_deleteItem_async(item_id) {
+    $.ajax({
+        type: "DELETE", // JQuery has this cryptic note in the documentation that
+        //  Note: "Other HTTP request methods, such as PUT and DELETE, can also be used here, but they are not
+        // supported by all browsers."
+        //
+        // I assume that, in fact, as of 2014, all major browsers do support PUT and DELETE.
+        url: api_base + item_id + '/',
+        success: function(data, status, xhr) {
+            delete window._items[item_id]; // remove the data
+            $('#todo-item-'+item_id).remove(); // remove the ui
+        },
+        error: function(request, status, error) {
+            alert("We are so sorry! Delete unexpectedly failed: " + error);
+            throw "Delete failed: " + error + ", " + request.status
+        }
+    });
 }
 /*
  item_diff only contains those fields that are modified
@@ -200,15 +216,6 @@ function markCompleted(item_id, is_completed) {
     }
 }
 
-function deleteItem(item_id) {
-    var result = ajax_deleteItem(item_id);
-    if (result) { // success; update the ui
-        delete window._items[item_id]; // remove the data
-        $('#todo-item-'+item_id).remove(); // remove the ui
-    } else {
-        alert("Server error while trying to delete the item"); // TODO: prettify
-    }
-}
 
 /*
  * Returns full html code for the div containing the item.
@@ -240,7 +247,7 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
         "&nbsp;Item expires: <input type=\"text\" class=\"datepicker\" autocomplete=\"off\" " +
         (is_completed ? " disabled=true ": "") + " /><em>" +
         (is_completed ? "(not editable any more)" : "(click or tap to edit)") + "</em>" +
-        "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\"deleteItem(" + item_id + ");\" >Delete</button>" +
+        "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\"ajax_deleteItem_async(" + item_id + ");\" >Delete</button>" +
         "</div></div> +" +
         "</li>";
 }
