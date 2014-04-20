@@ -144,6 +144,9 @@ STATICFILES_DIRS = (
 )
 
 
+### Tastypie for the API
+TASTYPIE_DATETIME_FORMATTING = 'rfc-2822'
+
 ### Sending email through an external API ###
 
 EMAIL_USE_TLS = True
