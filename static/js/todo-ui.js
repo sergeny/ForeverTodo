@@ -47,8 +47,11 @@ function ajax_getAllItems(current_user_id) {
                 $('#main_item_list').append(renderItemHTML(item.id, item.title, item.text, item.priority, item.completed));
                 attachCallbacks(item.id);
             }
+        },
+        error: function(request, status, error) {
+            alert("We are so sorry! Loading your items failed: " + error + ". You can try to refresh the page or come back later.");
+            throw "getAllItems failed: " + error + ", " + request.status
         }
-
     });
 }
 
