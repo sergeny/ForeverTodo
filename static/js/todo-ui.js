@@ -145,6 +145,7 @@ $(function () {
     // No good reason to put it here, since we are waiting for the ajax call to load anyway
     // However, sortable can be initialized before everything is loaded...
     $("#main_item_list").sortable();
+    $.fn.editable.defaults.ajaxOptions = {type: 'PUT', contentType: 'application/json'};
 });
 
 
@@ -175,16 +176,38 @@ function setItemPriority(item_id, priority) {
     }
 }
 
+function editableParams(params) {
+    var data = {}
+    var item = window._items[params.pk];
+    for (prop in item) { // copy the existing item
+        data[prop] = item[prop];
+    }
+    data[params.name] = params.value; // modify
+    // Returning a string, not an object. This is an undocumented feature of X-editable, that
+    // this works when contentType='application/json'.
+    return JSON.stringify(data);
+}
+
 /*
  * Attach jQuery X-editable callbacks for in-place editing of the item title and contents
  */
 function attachCallbacks(item_id) {
     var element = $('#todo-item-' + item_id);
     element.find('.todo-header').editable({ // always success, url not specified, doing ajax call on our own
-        success: getEditableCallback(item_id, 'title')
+        url: api_base + item_id + '/',
+        name: 'title',
+        params: editableParams,
+        error: function(response, newValue) {
+            return "Delete unexpectedly failed: " + response.statusText;
+        }
     });
     element.find('.todo-content').editable({ // always success, url not specified, doing ajax call on our own
-        success: getEditableCallback(item_id, 'text')
+        url: api_base + item_id + '/',
+        name: 'text',
+        params: editableParams,
+        error: function(response, newValue) {
+            return "Delete unexpectedly failed: " + response.statusText;
+        }
     });
 
 
