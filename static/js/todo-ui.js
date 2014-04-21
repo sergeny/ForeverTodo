@@ -73,12 +73,26 @@ function ajax_deleteItem_async(item_id) {
         }
     });
 }
-/*
- item_diff only contains those fields that are modified
- returns true on success, false on failure
- */
-function ajax_modifyItem(item_id, item_diff) {
-    return true;
+
+function ajax_modifyItem_async(item_id, field, newValue, onsuccess, onerror) {
+    $.ajax({
+        type: "PUT",
+        url: api_base + item_id + '/',
+        data: stringifyUpdatedItem({name: field, value: newValue, pk:item_id}),
+        contentType: 'application/json',
+        success: function(data, status, xhr) {
+            // console.log(data);
+            // console.log(status);
+            // console.log(xhr);
+            window._items[item_id][field] = newValue;
+            onsuccess();
+        },
+        error: function(request, status, error) {
+            alert("We are so sorry! Update unexpectedly failed: " + error);
+            throw "Update failed: " + error + ", " + request.status
+            onerror();
+        }
+    })
 }
 /*
  returns nothing
@@ -141,6 +155,7 @@ function getEditableCallback(item_id, field) {
 }
 
 
+
 $(function () {
     // No good reason to put it here, since we are waiting for the ajax call to load anyway
     // However, sortable can be initialized before everything is loaded...
@@ -166,17 +181,25 @@ function toggleItemPriority(item_id, is_enabled) {
     setItemPriority(item_id, (window._items[item_id].priority + 1) % 3);
 }
 function setItemPriority(item_id, priority) {
-
+    ajax_modifyItem_async(item_id, 'priority', priority, function() {
+        $('#btn-priority-' + item_id).replaceWith(renderPriorityButton(item_id, priority));
+    }, function(){});
+    /*
     var result = getEditableCallback(item_id, 'priority')(undefined, priority);
     if (result == undefined) { // success; update the ui
         // FIXME: just make sure, what will happen to the previous event handler after replaceWith?
         $('#btn-priority-' + item_id).replaceWith(renderPriorityButton(item_id, priority));
     } else { // ajax or validation failed; value not modified
         alert(result); // TODO: show gracefully
-    }
+    }*/
 }
 
-function editableParams(params) {
+/*
+ * Args: params is an object containing name, value, pk.
+ * Name can be e.g. 'title' or 'expires', anything that items have. Value is the new value.
+ * The function returns a string (JSON) representing the modified object #pk. 
+ */
+function stringifyUpdatedItem(params) {
     var data = {}
     var item = window._items[params.pk];
     for (prop in item) { // copy the existing item
@@ -196,17 +219,17 @@ function attachCallbacks(item_id) {
     element.find('.todo-header').editable({ // always success, url not specified, doing ajax call on our own
         url: api_base + item_id + '/',
         name: 'title',
-        params: editableParams,
+        params: stringifyUpdatedItem,
         error: function(response, newValue) {
-            return "Delete unexpectedly failed: " + response.statusText;
+            return "Edit unexpectedly failed: " + response.statusText;
         }
     });
     element.find('.todo-content').editable({ // always success, url not specified, doing ajax call on our own
         url: api_base + item_id + '/',
         name: 'text',
-        params: editableParams,
+        params: stringifyUpdatedItem,
         error: function(response, newValue) {
-            return "Delete unexpectedly failed: " + response.statusText;
+            return "Edit unexpectedly failed: " + response.statusText;
         }
     });
 
@@ -234,16 +257,13 @@ function attachCallbacks(item_id) {
  * User chose to mark an item as completed or revert to pending (is_completed is true or false, respectively)
  */
 function markCompleted(item_id, is_completed) {
-    var result = getEditableCallback(item_id, 'completed')(undefined, is_completed);
-    if (result == undefined) { // success: update the ui
+    ajax_modifyItem_async(item_id, 'completed', is_completed, function() {
         // TODO: do without replaceWith?
         var i = window._items[item_id];
         $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
         // Reattach event handlers
         attachCallbacks(item_id);
-    } else { // ajax or validation failed; value not modified
-        alert(result); // TODO: show gracefully
-    }
+    }, function(){});
 }
 
 
