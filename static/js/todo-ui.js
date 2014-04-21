@@ -197,7 +197,7 @@ function setItemPriority(item_id, priority) {
 /*
  * Args: params is an object containing name, value, pk.
  * Name can be e.g. 'title' or 'expires', anything that items have. Value is the new value.
- * The function returns a string (JSON) representing the modified object #pk. 
+ * The function returns a string (JSON) representing the modified object #pk.
  */
 function stringifyUpdatedItem(params) {
     var data = {}
@@ -240,12 +240,15 @@ function attachCallbacks(item_id) {
         clear: 'Never expires'
     }).pickadate('picker').clear();
     if (date != undefined) { // Populate the input field with the initial date
+        console.log("Initializing the picker with date " + date + " (item_id=" + item_id + ")");
         picker.set('select', date);
     }
 
     if (!window._items[item_id].completed) { // Item not done yet --> the date can be changed
         picker.on('set', function(context) {
-            f(undefined, context.select); // or new Date(context.select)? unless it is undefined, of course
+            console.log("Modifying date, new: " + new Date(context.select).toUTCString() + ", item_id="+item_id);
+            ajax_modifyItem_async(item_id, 'expires', "" + (new Date(context.select).toUTCString()), function(){}, function(){});
+            //f(undefined, context.select); // or new Date(context.select)? unless it is undefined, of course
         });
     } else { // Item done ---> the date is fixed. Disable the picker.
         picker.stop(); // We have still created the picker to consistently populate the input field
