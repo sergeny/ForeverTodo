@@ -106,6 +106,10 @@ function ajax_createItem_async(item) {
                 attachCallbacks(item_id);
             }
         },
+        error: function(request, status, error) {
+            alert("We are so sorry! Create unexpectedly failed: " + error);
+            throw "Create failed: " + error + ", " + request.status
+        },
         contentType: 'application/json'
     });
 }
