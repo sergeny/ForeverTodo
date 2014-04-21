@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^$', 'app_todo.views.index', name='home'),
+    url(r'^api_access$', 'app_todo.views.api_page', name='api_page'),
 
     url(r'^api/', include(v1_api.urls)),
 
