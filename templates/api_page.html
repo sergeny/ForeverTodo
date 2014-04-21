@@ -1,0 +1,31 @@
+{%  extends "base.html" %}
+
+{% block extra_head %}
+{{ block.super }}
+<script>
+    function onRegenerate() {
+        if (confirm("Are you sure? The existing key will stop working!")) {
+            alert("Yes!");
+        }
+    }
+</script>
+{% endblock %}
+
+{% block body %}
+ <div class="jumbotron">
+
+      <div class="container">
+
+      <h1>API Access</h1>
+
+      <p class="lead">You can add, modify, and delete your todo items via an API.</p>
+      <p class>Your API key: {{ api_key }} </p>
+
+      <form method="POST" action="" onsubmit="return confirm('Are you sure? The existing key will stop working!');">
+        {% csrf_token %}
+        <input type="hidden" name="current_key_hash" value="{{ api_key_hash }}" />
+        <input type="submit" class="btn btn-warning"  value="Regenerate"/>
+      </form>
+
+
+{%  endblock %}
