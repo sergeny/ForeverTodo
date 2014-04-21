@@ -89,8 +89,8 @@ function ajax_modifyItem_async(item_id, field, newValue, onsuccess, onerror) {
         },
         error: function(request, status, error) {
             alert("We are so sorry! Update unexpectedly failed: " + error);
-            throw "Update failed: " + error + ", " + request.status
             onerror();
+            throw "Update failed: " + error + ", " + request.status
         }
     })
 }
@@ -245,11 +245,31 @@ function attachCallbacks(item_id) {
     }
 
     if (!window._items[item_id].completed) { // Item not done yet --> the date can be changed
-        picker.on('set', function(context) {
-            console.log("Modifying date, new: " + new Date(context.select).toUTCString() + ", item_id="+item_id);
-            ajax_modifyItem_async(item_id, 'expires', "" + (new Date(context.select).toUTCString()), function(){}, function(){});
+
+        function onPickerSet(context) {
+            // Important to use UTC String. Tastypie does not properly parse the typical JS date-time format.
+            var newdatestr = (context.select != undefined) ? new Date(context.select).toUTCString() : null;
+            console.log("Modifying date, new: " + newdatestr + ", item_id="+item_id);
+            ajax_modifyItem_async(item_id, 'expires', newdatestr, function(){},
+                function(){
+                    // Revert the ui on failure
+                    var prevdate = window._items[item_id].expires;
+                    if (prevdate) {
+                        picker.set('select', prevdate, { muted: true});
+                    } else {
+                        // Terrible, ugly solution
+                        // Because Pickadate.js does not have picker.clear({muted:true})
+                        // So we cannot clear it without triggering the callback (clear works via set)
+                        // picker.set('select', 'clear', {muted:true}) does not work either.
+                        picker.off('set');
+                        picker.clear();
+                        picker.on('set', onPickerSet);
+                    }
+                });
             //f(undefined, context.select); // or new Date(context.select)? unless it is undefined, of course
-        });
+        }
+
+        picker.on('set', onPickerSet);
     } else { // Item done ---> the date is fixed. Disable the picker.
         picker.stop(); // We have still created the picker to consistently populate the input field
     }
