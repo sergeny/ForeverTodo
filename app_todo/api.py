@@ -3,32 +3,39 @@ from tastypie.authentication import SessionAuthentication, ApiKeyAuthentication,
 from app_todo.models import TodoItem
 from tastypie.authorization import Authorization
 from tastypie.exceptions import Unauthorized
-
 from tastypie import fields
+
 
 # It should be fine to import get_user_model here, right?
 # The api.py is included in urls.py, which is initialized after all the models.
 # (as mentioned in https://code.djangoproject.com/ticket/19218)
 from django.contrib.auth import get_user_model
+import logging
+logger = logging.getLogger('apiLogger')
 
 
 class UserObjectsOnlyAuthorization(Authorization):
     def read_list(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization %s" % (bundle.request.user))
         # This assumes a ``QuerySet`` from ``ModelResource``.
         return object_list.filter(user=bundle.request.user)
 
     def read_detail(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization %s %s" % (bundle.obj.user, bundle.request.user))
         # Is the requested object owned by the user?
         return bundle.obj.user == bundle.request.user
 
     def create_list(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization")
         # Assuming they're auto-assigned to ``user``.
         return object_list
 
     def create_detail(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization %s %s" % (bundle.obj.user, bundle.request.user))
         return bundle.obj.user == bundle.request.user
 
     def update_list(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization %s" % (bundle.request.user))
         allowed = []
 
         # Since they may not all be saved, iterate over them.
@@ -39,9 +46,11 @@ class UserObjectsOnlyAuthorization(Authorization):
         return allowed
 
     def update_detail(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization %s %s" % (bundle.obj.user, bundle.request.user))
         return bundle.obj.user == bundle.request.user
 
     def delete_list(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization %s" % (bundle.request.user))
         allowed = []
 
         # Since they may not all be deleted, iterate over them.
@@ -54,6 +63,7 @@ class UserObjectsOnlyAuthorization(Authorization):
         # raise Unauthorized("Sorry, no deletes.")
 
     def delete_detail(self, object_list, bundle):
+        logger.info("API UserObjectsOnlyAuthorization %s %s" % (bundle.obj.user, bundle.request.user))
         return bundle.obj.user == bundle.request.user
         #  raise Unauthorized("Sorry, no deletes.")
 
