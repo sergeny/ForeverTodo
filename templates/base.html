@@ -2,9 +2,7 @@
 {%  load staticfiles %}
 
 
-<!DOCTYPE html>
-<html>
-<head>
+
     {%  block head_title %}Forever Todo{% endblock %}
 
 {% block style_base %}
@@ -80,8 +78,7 @@ $('li').tsort();
 
 
     {%  endblock %}
-</head>
-<body>
+
 {%  block body %}
     {%  comment %}{% block navbar %}
         {%  include "_navbar.html" %}
@@ -99,5 +96,4 @@ $('li').tsort();
         {% endblock %}
 
 {%  endblock body %}
-</body>
-</html>
+
