@@ -1,5 +1,7 @@
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
+from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 from tastypie.models import ApiKey
 import hashlib
 
@@ -16,6 +18,7 @@ def index(request):
 
 # After all, we need some way for the user to regenerate the key, and I did not want to make it
 # a part of the API for security reasons. (Don't want to rely on tastypie to manage its own api keys.)
+@login_required
 def api_page(request):
     ctx = {'request' : request}
     if request.user.is_authenticated():
@@ -28,5 +31,8 @@ def api_page(request):
                 hash = hashlib.sha1(ak.key).hexdigest()
         ctx['api_key'] = ak.key
         ctx['api_key_hash'] = hash
+        # reverse('api_dispatch_list', args=['v1', 'todo'])
+        ctx['api_base'] = request.build_absolute_uri(reverse('api_dispatch_list', args=['v1', 'todo']))
+        ctx['user_uri'] = reverse('api_dispatch_detail', args=['v1', 'user', request.user.pk])
     x=RequestContext(request)
     return render_to_response('api_page.html', ctx, context_instance=RequestContext(request))
