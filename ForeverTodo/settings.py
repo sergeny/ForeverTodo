@@ -9,20 +9,58 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
+import os, sys
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-
-# Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'ae$kh(7b%$+dfcx_bdnzl#)$t88x7h2-p%eg_ei5m=w&2p-)1+'
+#############################################################################
+#                                                                           #
+#                          DEBUG or PRODUCTION                              #
+#                                                                           #
+# DEBUG if running Django development server, PRODUCTION otherwise          #
+#                                                                           #
+#############################################################################
+RUNNING_DEV_SERVER = (len(sys.argv) > 1) and (sys.argv[1] == 'runserver')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = RUNNING_DEV_SERVER
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
+
+# Detect the timezone
+if not 'ORIGINAL_TIMEZONE' in os.environ:
+    f = os.popen('date +%Z')
+    tz = f.read().upper()
+    os.environ['ORIGINAL_TIMEZONE']=tz
+    print ('DEBUG: %d, RUNNING_DEV_SERVER: %d, system timezone: %s ' % (DEBUG, RUNNING_DEV_SERVER, tz))
+
+
+if not (DEBUG or RUNNING_DEV_SERVER):
+    SECRET_KEY = os.environ['SECRET_KEY']
+else:
+    os.environ['DJANGO_DEBUG']='1'
+    # Now make it really obvious in your templates that we are in debug mode. Change text, background, etc.
+    # something like {% if request.META.DJANGO_DEBUG %}DEBUG MODE!{% else %}My Fancy App{% endif %}
+
+    SECRET_KEY = 'DEBUG_INSECURE_SECRET_KEY_ae$kh(7b%$+a fcw_bdnzl#)$t88x7h2-p%eg_ei5m=w&2p-)1+'
+
+    # But what if we are idiots and are still somehow running with DEBUG=True in production?!
+    # 1. Make sure SECRET_KEY is not set
+    assert not SECRET_KEY in os.environ
+    # 2. Make sure the timezone is not UTC or GMT (indicating production)
+
+    tz = os.environ['ORIGINAL_TIMEZONE']
+    assert tz != '' and (not 'UTC' in tz) and (not 'GMT' in tz)
+    # 3. Look for environment variables suggesting we are in PROD
+    for key in os.environ:
+        for red_flag in ['heroku', 'amazon', 'aws', 'prod', 'gondor']:
+            assert not red_flag in key.lower()
+            assert not red_flag in os.environ[key].lower()
+
+
+
+
 
 ALLOWED_HOSTS = []
 
@@ -83,15 +121,20 @@ ROOT_URLCONF = 'ForeverTodo.urls'
 WSGI_APPLICATION = 'ForeverTodo.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+### for Heroku deployment ###
+if not (DEBUG or RUNNING_DEV_SERVER):
+    # Parse database configuration from $DATABASE_URL
+    import dj_database_url
+    DATABASES['default'] =  dj_database_url.config()
+else: # debug database
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -123,11 +166,7 @@ THEME_ACCOUNT_CONTACT_EMAIL = "no-contact@sad.com"
 
 
 
-### for Heroku deployment ###
 
-# Parse database configuration from $DATABASE_URL
-import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -159,14 +198,15 @@ EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
 
-### Security
-SECURE_SSL_REDIRECT = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+if not (DEBUG or RUNNING_DEV_SERVER):
+    ### Security
+    SECURE_SSL_REDIRECT = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
-SECURE_HSTS_SECONDS = 86400000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_BROWSER_XSS_FILTER = True
+    SECURE_HSTS_SECONDS = 86400000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_BROWSER_XSS_FILTER = True
 
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
