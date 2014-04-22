@@ -8,13 +8,16 @@
 
 
 
+
 {% block nav %}
-<ul class="nav navbar-nav navbar-left">
-<li><a href="{% url 'api_page' %}">API</a>
-</ul>
-
-
+    {% if request.user.is_authenticated %}
+        <ul class="nav navbar-nav navbar-left">
+            <li><a href="{% url 'api_page' %}">API</a></li>
+        </ul>
+    {% endif %}
 {% endblock %}
+
+
 
 {%  block footer %}
 
