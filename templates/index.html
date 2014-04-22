@@ -18,7 +18,7 @@
 
       <div class="container">
 
-      <h1>Forever Todo Lists</h1>
+      <h1>{% if request.META.DJANGO_DEBUG %}(DEBUG){% endif %}Forever Todo Lists</h1>
 
       <p class="lead">Gone are the days when you had to struggle, pinning notes to your refrigerator with those little magnets. Leverage the power of the modern web to never ever forget anything again!</p>
 
@@ -103,5 +103,7 @@
     </ul>
 </div>
 
+
     {% endif %}
+
 {%  endblock %}
