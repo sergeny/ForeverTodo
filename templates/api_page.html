@@ -134,8 +134,21 @@ Content-Type: application/json; charset=UTF-8
 curl -v --dump-header -  -H "Content-Type: application/json"  -X PUT "{{ api_base }}3/?username={{ request.user.username }}&api_key=&lt;api_key&gt;"  --data '{"completed": true, "expires": null,  "priority": 0,  "text": "Let's compare milk with kefir!", "title": "Pick up the kefir", "user": "{{ user_uri }}"}'</pre>
 
 Returns 204 NO CONTENT on success, 201 CREATED if it was a new item with a specified id, 401 if unauthorized.
+<br>
+<em class="label-warning">IMPORTANT: in Javascript use Date().toUTCString() to specify the expiration date. Do not just convert Date() to string, as it is not in RFC 2822.</em>
+
+<h2>PATCH <code>{{ api_base }}&lt;item_id&gt;</code></h2>
+Virtually the same as PUT; supports partial updates. Returns 202 ACCEPTED on success, 404 NOT FOUND if there is no item with this id.
 
  <h2>DELETE <code>{{ api_base }}&lt;item_id&gt;</code></h2>
     Delete an item belonging to the user.
+
+<pre class="prettyprint">
+DELETE {{ api_base }}3/ HTTP/1.1
+.......</pre>
+<pre class="prettyprint">
+curl  -X DELETE "{{ api_base }}?username={{ request.user.username }}&api_key=&lt;api_key&gt;"</pre>
+
+Returns 204 NO CONTENT on success, 404 NOT FOUND if there is no item with this id, 401 if unauthorized.
 
 {%  endblock %}
