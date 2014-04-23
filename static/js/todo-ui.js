@@ -140,9 +140,6 @@ function ajax_createItem_async(item) {
 
 
 $(function () {
-    // No good reason to put it here, since we are waiting for the ajax call to load anyway
-    // However, sortable can be initialized before everything is loaded...
-    $("#main_item_list").sortable();
     $.fn.editable.defaults.ajaxOptions = {type: 'PUT', contentType: 'application/json'};
 });
 
