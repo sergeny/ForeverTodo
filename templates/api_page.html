@@ -1,38 +1,37 @@
-{%  extends "site_base.html" %}
+{% extends "site_base.html" %}
 {% load staticfiles %}
 
-{% block extra_head %}
-{{ block.super }}
-
-<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
-{% endblock %}
-
 {% block body %}
- <div class="jumbotron">
+    <div class="jumbotron">
+        <h1>API Access</h1>
 
-      <div class="container">
+        <p class="lead">You can add, modify, and delete your todo items via an API.</p>
 
-      <h1>API Access</h1>
-
-      <p class="lead">You can add, modify, and delete your todo items via an API.</p>
-      <p>Your API key: <pre class="prettyprint">{{ api_key }}</pre>
+        <p>Your API key:
+        <pre class="prettyprint">{{ api_key }}</pre>
 
 
-      <form method="POST" action="" onsubmit="return confirm('Are you sure? The existing key will stop working!');">
-        {% csrf_token %}
-        <input type="hidden" name="current_key_hash" value="{{ api_key_hash }}" />
-        <input type="submit" class="btn btn-warning"  value="Regenerate"/>
-      </form>
+        <form method="POST" action=""
+              onsubmit="return confirm('Are you sure? The existing key will stop working!');">
+            {% csrf_token %}
+            <input type="hidden" name="current_key_hash" value="{{ api_key_hash }}"/>
+            <input type="submit" class="btn btn-warning" value="Regenerate"/>
+        </form>
 
-      <h2>Endpoint</h2>
-      <pre class="prettyprint">{{ api_base }}</pre>
-      <h2>User URI</h2>
-      <pre class="prettyprint">{{ user_uri }}</pre>
+        <h2>Endpoint</h2>
+        <pre class="prettyprint">{{ api_base }}</pre>
+        <h2>User URI</h2>
+        <pre class="prettyprint">{{ user_uri }}</pre>
+    </div> <!-- jumbotron -->
 
-       <h2>Authentication</h2>
-        You can specify the API key in the HTTP header or pass the username/api key combination as parameters to GET or POST.
 
-  <pre class="prettyprint">
+    <div class="container">
+
+        <h2>Authentication</h2>
+        You can specify the API key in the HTTP header or pass the username/api key combination as parameters to GET
+        or POST.
+
+    <pre class="prettyprint">
 # As a header
 # Format is `Authorization: ApiKey &lt;username&gt;:&lt;api_key&gt;`
 Authorization: ApiKey {{ request.user.username }}:&lt;api_key&gt;
@@ -42,13 +41,17 @@ Authorization: ApiKey {{ request.user.username }}:&lt;api_key&gt;
 
 </pre>
 
-          If you are logged into the website, you can also use session authentication. Try the following link to get the list of your todo items:
-          <br>
-          <a href="{{ api_base }}?format=json">{{ api_base }}?format=json</a>. Instead of the <code>?format=json</code>, you can also set the <code>Content-Type</code> and <code>Accept</code> headers to <code>application/json</code>, as appropriate.
+        If you are logged into the website, you can also use session authentication. Try the following link to get
+        the list of your todo items (<em class="label-warning">remember about API pagination</em>):
+        <br>
+        <a href="{{ api_base }}?format=json">{{ api_base }}?format=json</a>. Instead of the
+        <code>?format=json</code>, you can also set the <code>Content-Type</code> and <code>Accept</code> headers to
+        <code>application/json</code>, as appropriate.
 
 
-<h3>GET <code>{{ api_base }}</code></h3>
-    Retrieve the list of all items belonging to the user. The API supports pagination; use parameters <code>limit</code> and <code>offset</code> as appropriate. Example (most parameters omitted):
+        <h3>GET <code>{{ api_base }}</code></h3>
+        Retrieve the list of all items belonging to the user. The API supports pagination; use parameters <code>limit</code>
+        and <code>offset</code> as appropriate. Example (most parameters omitted):
     <pre class="prettyprint">
 GET {{ api_base }}?limit=20&offset=10
 Accept: application/json, text/javascript, */*; q=0.01
@@ -57,10 +60,10 @@ Cache-Control: no-cache
     <pre class="prettyprint">
 curl "{{ api_base }}?limit=10&username={{ request.user.username }}&api_key=&lt;api_key&gt;"</pre>
 
-Returns 200 OK on success, 401 if unauthorized. Example JSON output:
-<button onclick="$('#example1').slideToggle();">Show/hide example output</button>
+        Returns 200 OK on success, 401 if unauthorized. Example JSON output:
+        <button onclick="$('#example1').slideToggle();">Show/hide example output</button>
 
-<pre class="prettyprint" id="example1" style="display:none;">
+    <pre class="prettyprint" id="example1" style="display:none;">
     {
 	"meta": {
 		"limit": 10,
@@ -92,22 +95,24 @@ Returns 200 OK on success, 401 if unauthorized. Example JSON output:
 
 </pre>
 
-<h3>GET <code>{{ api_base }}&lt;item_id&gt;/</code></h3>
-    Retrieve a specific item belonging to the user.
+        <h3>GET <code>{{ api_base }}&lt;item_id&gt;/</code></h3>
+        Retrieve a specific item belonging to the user.
 
-Returns 200 OK on success, 401 if unauthorized --- in particular, if this item does not belong to this user.  Example to return item #3:
+        Returns 200 OK on success, 401 if unauthorized --- in particular, if this item does not belong to this user.
+        Example to return item #3:
     <pre class="prettyprint">
 curl "{{ api_base }}3/?username={{ request.user.username }}&api_key=&lt;api_key&gt;"</pre>
 
 
-<h2>POST <code>{{ api_base }}</code></h2>
-    Create a new item for the user. You have to include your user_uri as part of the data, even though users are only authorized to create items for themselves.
+        <h2>POST <code>{{ api_base }}</code></h2>
+        Create a new item for the user. You have to include your user_uri as part of the data, even though users are
+        only authorized to create items for themselves.
 
     <pre class="prettyprint">
 curl   --dump-header - -H "Content-Type: application/json" -X POST --data '{"user": "{{ user_uri }}", "completed": false, "title":"Pick up milk","priority":1 }'  "{{ api_base }}?username={{ request.user.username }}&api_key=&lt;api_key&gt;"</pre>
 
-Possible fields:
-<pre class="prettyprint">
+        Possible fields:
+    <pre class="prettyprint">
 title (string),
 text (string),
 priority (integer 0..2),
@@ -115,40 +120,51 @@ expires (string RFC 2822), specify null to unset,
 completed (boolean),
 user (string), has to be {{ user_uri }}
 </pre>
-Returns 201 CREATED on success, 401 if unauthorized. The header of the response contains <code>Location</code> specifying the URI of a newly created resource. Example:
-<pre class="prettyprint">
+        Returns 201 CREATED on success, 401 if unauthorized. The header of the response contains
+        <code>Location</code> specifying the URI of a newly created resource. Example:
+    <pre class="prettyprint">
 Location: {{ api_base }}3/</pre>
-<em class="label-warning">IMPORTANT: in Javascript use Date().toUTCString() to specify the expiration date. Do not just convert Date() to string, as it is not in RFC 2822.</em>
+        <em class="label-warning">IMPORTANT: in Javascript use Date().toUTCString() to specify the expiration date.
+            Do not just convert Date() to string, as it is not in RFC 2822.</em>
 
-<h2>PUT <code>{{ api_base }}&lt;item_id&gt;</code></h2>
-    Update an item belonging to the user.
+        <h2>PUT <code>{{ api_base }}&lt;item_id&gt;</code></h2>
+        Update an item belonging to the user.
 
-Example:
-<pre class="prettyprint">
+        Example:
+    <pre class="prettyprint">
 PUT {{ api_base }}3/ HTTP/1.1
 Content-Type: application/json; charset=UTF-8
 .......
 
 {"completed":false, "expires":null, "priority":0, "text":"Let us finally pick up the milk.", "title":"Pick up the milk","user":"{{ user_uri }}"}</pre>
-<pre class="prettyprint">
+    <pre class="prettyprint">
 curl -v --dump-header -  -H "Content-Type: application/json"  -X PUT "{{ api_base }}3/?username={{ request.user.username }}&api_key=&lt;api_key&gt;"  --data '{"completed": true, "expires": null,  "priority": 0,  "text": "Let's compare milk with kefir!", "title": "Pick up the kefir", "user": "{{ user_uri }}"}'</pre>
 
-Returns 204 NO CONTENT on success, 201 CREATED if it was a new item with a specified id, 401 if unauthorized.
-<br>
-<em class="label-warning">IMPORTANT: in Javascript use Date().toUTCString() to specify the expiration date. Do not just convert Date() to string, as it is not in RFC 2822.</em>
+        Returns 204 NO CONTENT on success, 201 CREATED if it was a new item with a specified id, 401 if
+        unauthorized.
+        <br>
+        <em class="label-warning">IMPORTANT: in Javascript use Date().toUTCString() to specify the expiration date.
+            Do not just convert Date() to string, as it is not in RFC 2822.</em>
 
-<h2>PATCH <code>{{ api_base }}&lt;item_id&gt;</code></h2>
-Virtually the same as PUT; supports partial updates. Returns 202 ACCEPTED on success, 404 NOT FOUND if there is no item with this id.
+        <h2>PATCH <code>{{ api_base }}&lt;item_id&gt;</code></h2>
+        Virtually the same as PUT; supports partial updates. Returns 202 ACCEPTED on success, 404 NOT FOUND if there
+        is no item with this id.
 
- <h2>DELETE <code>{{ api_base }}&lt;item_id&gt;</code></h2>
-    Delete an item belonging to the user.
+        <h2>DELETE <code>{{ api_base }}&lt;item_id&gt;</code></h2>
+        Delete an item belonging to the user.
 
-<pre class="prettyprint">
+    <pre class="prettyprint">
 DELETE {{ api_base }}3/ HTTP/1.1
 .......</pre>
-<pre class="prettyprint">
+    <pre class="prettyprint">
 curl  -X DELETE "{{ api_base }}?username={{ request.user.username }}&api_key=&lt;api_key&gt;"</pre>
 
-Returns 204 NO CONTENT on success, 404 NOT FOUND if there is no item with this id, 401 if unauthorized.
+        Returns 204 NO CONTENT on success, 404 NOT FOUND if there is no item with this id, 401 if unauthorized.
 
-{%  endblock %}
+    </div>
+{% endblock body %}
+
+{% block script_base %}
+    {{ block.super }}
+     <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+{% endblock %}
