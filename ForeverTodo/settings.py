@@ -244,4 +244,8 @@ if not (DEBUG or RUNNING_DEV_SERVER):
 
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = True
+    # I give up. I tried to make it work, and I did pass the token and then set X-CSRFToken via jQuery.
+    # It appears, though, that jQuery is resetting it to null anyway, just because the csrftoken cookie is Httponly.
+    # Let this one be without Httponly...
+    # CSRF_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SECURE = True
