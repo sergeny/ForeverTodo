@@ -38,20 +38,20 @@
         {% endif %}
     </div> <!-- jumbotron -->
 
+     <!-- Main list of items for the current user-->
+     <ul id="main_item_list" style="list-style: none; "></ul>
+{% endblock %}
+
+{% block script_base %}
+    {{ block.super }}
 
     {% if request.user.is_authenticated %}
-        <!-- Main list of items for the current user-->
-        <ul id="main_item_list" style="list-style: none; "></ul>
-
         <script src="{% static  'js/todo-ui.js' %}"></script>
         <script>
             ajax_getAllItems({{ request.user.pk }});
         </script>
     {% endif %}
-{% endblock %}
 
-{% block script_base %}
-    {{ block.super }}
     <!--Tinysort plugin for sorting user's items in various ways-->
     <script src="{%  static 'js/jquery.tinysort.min.js' %}"></script>
     <!-- X-editable jQuery plugin for in-place editing, bootstrap version-->
