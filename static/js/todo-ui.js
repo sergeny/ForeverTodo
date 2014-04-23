@@ -167,14 +167,6 @@ function setItemPriority(item_id, priority) {
     ajax_modifyItem_async(item_id, 'priority', priority, priority, function() {
         $('#btn-priority-' + item_id).replaceWith(renderPriorityButton(item_id, priority));
     }, function(){});
-    /*
-    var result = getEditableCallback(item_id, 'priority')(undefined, priority);
-    if (result == undefined) { // success; update the ui
-        // FIXME: just make sure, what will happen to the previous event handler after replaceWith?
-        $('#btn-priority-' + item_id).replaceWith(renderPriorityButton(item_id, priority));
-    } else { // ajax or validation failed; value not modified
-        alert(result); // TODO: show gracefully
-    }*/
 }
 
 /*
@@ -223,7 +215,7 @@ function attachCallbacks(item_id) {
     });
 
 
-    var f = getEditableCallback(item_id, 'expires');
+
     var date=window._items[item_id].expires;
     var picker = element.find('.datepicker').pickadate({
         clear: 'Never expires'
