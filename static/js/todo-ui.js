@@ -220,6 +220,9 @@ function attachCallbacks(item_id) {
         url: api_base + item_id + '/',
         name: 'title',
         params: stringifyUpdatedItem,
+        success: function(response, newValue) {
+            _items[item_id]['title'] = newValue;
+        },
         error: function(response, newValue) {
             return "Edit unexpectedly failed: " + response.statusText;
         }
@@ -228,6 +231,9 @@ function attachCallbacks(item_id) {
         url: api_base + item_id + '/',
         name: 'text',
         params: stringifyUpdatedItem,
+        success: function(response, newValue) {
+            _items[item_id]['text'] = newValue;
+        },
         error: function(response, newValue) {
             return "Edit unexpectedly failed: " + response.statusText;
         }
