@@ -74,17 +74,17 @@ function ajax_deleteItem_async(item_id) {
     });
 }
 
-function ajax_modifyItem_async(item_id, field, newValue, onsuccess, onerror) {
+function ajax_modifyItem_async(item_id, field, sendValue, updateValue, onsuccess, onerror) {
     $.ajax({
         type: "PUT",
         url: api_base + item_id + '/',
-        data: stringifyUpdatedItem({name: field, value: newValue, pk:item_id}),
+        data: stringifyUpdatedItem({name: field, value: sendValue, pk:item_id}),
         contentType: 'application/json',
         success: function(data, status, xhr) {
             // console.log(data);
             // console.log(status);
             // console.log(xhr);
-            window._items[item_id][field] = newValue;
+            window._items[item_id][field] = updateValue;
             onsuccess();
         },
         error: function(request, status, error) {
@@ -135,24 +135,7 @@ function ajax_createItem_async(item) {
 
 
 
-/*
- * This function returns an X-editable style callback that is triggered when the user modifies
- * an item with id idem_id. Field shows what was modified: 'title' or 'text'.
- * The ajax call will only include the new data.
- * If the ajax call fails, the function returns an error message, so that X-editable won't update the ui.
- *
- * Binding: The function also updates the data in window._items.
- */
-function getEditableCallback(item_id, field) {
-    return function (response, newValue) {
-        var result = ajax_modifyItem(item_id, { field: newValue });
-        if (result) { // ajax success
-            window._items[item_id][field] = newValue;
-        } else {
-            return "Error while sending data to the server";
-        }
-    }
-}
+
 
 
 
@@ -181,7 +164,7 @@ function toggleItemPriority(item_id, is_enabled) {
     setItemPriority(item_id, (window._items[item_id].priority + 1) % 3);
 }
 function setItemPriority(item_id, priority) {
-    ajax_modifyItem_async(item_id, 'priority', priority, function() {
+    ajax_modifyItem_async(item_id, 'priority', priority, priority, function() {
         $('#btn-priority-' + item_id).replaceWith(renderPriorityButton(item_id, priority));
     }, function(){});
     /*
@@ -255,8 +238,9 @@ function attachCallbacks(item_id) {
         function onPickerSet(context) {
             // Important to use UTC String. Tastypie does not properly parse the typical JS date-time format.
             var newdatestr = (context.select != undefined) ? new Date(context.select).toUTCString() : null;
+            var newdate = (context.select != undefined) ? new Date(context.select) : null;
             console.log("Modifying date, new: " + newdatestr + ", item_id="+item_id);
-            ajax_modifyItem_async(item_id, 'expires', newdatestr, function(){},
+            ajax_modifyItem_async(item_id, 'expires', newdatestr, newdate, function(){},
                 function(){
                     // Revert the ui on failure
                     var prevdate = window._items[item_id].expires;
@@ -286,7 +270,7 @@ function attachCallbacks(item_id) {
  * User chose to mark an item as completed or revert to pending (is_completed is true or false, respectively)
  */
 function markCompleted(item_id, is_completed) {
-    ajax_modifyItem_async(item_id, 'completed', is_completed, function() {
+    ajax_modifyItem_async(item_id, 'completed', is_completed, is_completed, function() {
         // TODO: do without replaceWith?
         var i = window._items[item_id];
         $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
