@@ -1,14 +1,28 @@
 {% extends "theme_bootstrap/base.html" %}
+{% load staticfiles %}
 
+
+{% block head_title %}Forever Todo{% endblock %}
+
+{% block style_base %}
+    <!-- Styling for Pinax theme bootstrap, https://github.com/pinax/pinax-theme-bootstrap -->
+    <link href="{% static "pinax/css/theme.css" %}" rel="stylesheet">
+    <!-- Bootstrap 3 -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static "font-awesome/css/font-awesome.css" %}" rel="stylesheet">
+{% endblock %}
+
+
+{% block extra_head_base %}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+{% endblock %}
 
 
 {% block navbar_class %}navbar-inverse navbar-fixed-top{% endblock %}
 {% block site_brand %}<a class="navbar-brand" href="{% url "home" %}">ForeverTodo</a>{% endblock %}
 
 
-
-
-
+<!-- Navigation bar -->
 {% block nav %}
     {% if request.user.is_authenticated %}
         <ul class="nav navbar-nav navbar-left">
@@ -19,8 +33,12 @@
 
 
 
-{%  block footer %}
-                <p>&copy; Sergey Orshanskiy, 2014</p>
+{% block footer %}
+    <p>&copy; Sergey Orshanskiy, 2014</p>
+{% endblock %}
 
+{% block script_base %}
+    <script src="{% static "pinax/js/theme.js" %}"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 {% endblock %}
 
