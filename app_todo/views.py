@@ -5,10 +5,6 @@ from django.contrib.auth.decorators import login_required
 from tastypie.models import ApiKey
 import hashlib
 
-def task(request, task_id):
-    print "Hello"
-    return render_to_response('task.html', { 'task_id': task_id })
-
 
 def index(request):
     x=RequestContext(request)
