@@ -1,109 +1,62 @@
-{%  extends "base.html" %}
-{%  load staticfiles %}
+{% extends "site_base.html" %}
+{% load staticfiles %}
 
-{% block extra_head %}
-    <!-- http://www.jqueryrain.com/?V4r9LjZ3 -->
+{% block style_base %}
     {{ block.super }}
 
+    <!-- X-editable jQuery plugin for in-place editing, bootstrap version-->
+    <link href="{% static 'css/bootstrap-editable.css' %}" rel="stylesheet" />
     <!-- Pickadate jQuery plugin, https://github.com/amsul/pickadate.js, http://www.jqueryrain.com/?V4r9LjZ3 -->
     <link href="{% static 'css/pickadate/classic.css' %}" rel="stylesheet">
     <link href="{% static 'css/pickadate/classic.date.css' %}" rel="stylesheet">
-    <script src="{%  static 'js/pickadate/picker.js' %}"></script>
-    <script src="{%  static 'js/pickadate/picker.date.js' %}"></script>
-
 {% endblock %}
 
-{%  block body %}
-  <div class="jumbotron">
+{% block body %}
+    <div class="jumbotron">
+        <div class="container">
+            <h1>{% if request.META.DJANGO_DEBUG %}(DEBUG){% endif %}Forever Todo Lists</h1>
 
-      <div class="container">
+            <p class="lead">Gone are the days when you had to struggle, pinning notes to your refrigerator with those
+                little magnets. Leverage the power of the modern web to never ever forget anything again!</p>
+        </div>
 
-      <h1>{% if request.META.DJANGO_DEBUG %}(DEBUG){% endif %}Forever Todo Lists</h1>
-
-      <p class="lead">Gone are the days when you had to struggle, pinning notes to your refrigerator with those little magnets. Leverage the power of the modern web to never ever forget anything again!</p>
-
-      </div>
-
-      {% if request.user.is_authenticated %}
-
-          <div class="btn-group btn-group-justified">
- <div class="btn-group">
-    <button type="button" class="btn btn-primary" onclick="onCreateNewItem();">Create new item</button>
-  </div>
-
-  <div class="btn-group">
-    <button type="button" class="btn btn-default" onclick="uiSortByTitle();">Sort by name</button>
-  </div>
-  <div class="btn-group">
-    <button type="button" class="btn btn-default" onclick="uiSortByPriority();">Sort by priority</button>
-  </div>
-  <div class="btn-group">
-    <button type="button" class="btn btn-default" onclick="uiSortByDate();">Sort by date</button>
-  </div>
-</div>
-
-  </div>
+        {% if request.user.is_authenticated %}
+            <div class="btn-group-justified">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="onCreateNewItem();">Create new item</button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" onclick="uiSortByTitle();">Sort by name</button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" onclick="uiSortByPriority();">Sort by priority</button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" onclick="uiSortByDate();">Sort by date</button>
+                </div>
+            </div>
+        {% endif %}
+    </div> <!-- jumbotron -->
 
 
-  <div class="container" id="div-new-todo-item" style="display:none; width: 40%">
-    <div id="msg" class="alert hide"></div>
-    <table id="user" class="table table-bordered table-striped">
-        <tbody>
-            <tr>
-                <td width="40%">Username</td>
-                <td><a href="#" class="myeditable" id="new_username" data-type="text" data-name="username" data-original-title="Enter username"></a></td>
-            </tr>
-            <tr>
-                <td>First name</td>
-                <td><a href="#" class="myeditable" data-type="text" data-name="firstname" data-original-title="Enter firstname"></a></td>
-            </tr>
-            <tr>
-                <td>Group</td>
-                <td><a href="#" class="myeditable" data-type="select" data-name="group" data-source="/groups" data-original-title="Select group"></a></td>
-            </tr>
-            <tr>
-                <td>Date of birth</td>
-                <td><a href="#" class="myeditable" data-type="date" data-name="dob" data-viewformat="dd/mm/yyyy" data-original-title="Select Date of birth"></a></td>
-            </tr>
-            <tr>
-                <td>Comments</td>
-                <td><a href="#" class="myeditable" data-type="textarea" data-name="comments" data-original-title="Enter comments"></a></td>
-            </tr>
-        </tbody>
-    </table>
-    <div>
-    <button id="save-btn" class="btn btn-primary">Save new user!</button>
-    <button id="reset-btn" class="btn pull-right">Reset</button>
-    </div>
-</div>
+    {% if request.user.is_authenticated %}
+        <!-- Main list of items for the current user-->
+        <ul id="main_item_list" style="list-style: none; "></ul>
 
-<div class="container">
-
-
-
-    </div>
-
-
-  <div class="list-group">
-
-    <!-- Allow the user to reorder the todos by drag and drop -->
-      <ul id="main_item_list" style="list-style: none; "> <!--padding:0; margin:0;-->
-
-     <script> // FIXME. Right now it inserts <li> nodes after the <script> nodes, which gets weird
-     {% if request.user.is_authenticated %}
-        ajax_getAllItems({{ request.user.pk }});
-     {%  endif %}
-        // after we prepend some more <li> nodes before the <script>, when the user clicks "Create new..."
-        /* var r = renderAllItems();
-         for (var id in r) {
-             document.write(r[id]);
-         }*/
-
-     </script>
-    </ul>
-</div>
-
-
+        <script src="{% static  'js/todo-ui.js' %}"></script>
+        <script>
+            ajax_getAllItems({{ request.user.pk }});
+        </script>
     {% endif %}
+{% endblock %}
 
-{%  endblock %}
+{% block script_base %}
+    {{ block.super }}
+    <!--Tinysort plugin for sorting user's items in various ways-->
+    <script src="{%  static 'js/jquery.tinysort.min.js' %}"></script>
+    <!-- X-editable jQuery plugin for in-place editing, bootstrap version-->
+    <script src="{%  static 'js/bootstrap-editable.min.js' %}"></script>
+    <!-- Pickadate jQuery plugin, https://github.com/amsul/pickadate.js, http://www.jqueryrain.com/?V4r9LjZ3 -->
+    <script src="{% static 'js/pickadate/picker.js' %}"></script>
+    <script src="{% static 'js/pickadate/picker.date.js' %}"></script>
+{% endblock %}
