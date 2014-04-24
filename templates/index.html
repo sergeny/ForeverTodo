@@ -21,7 +21,9 @@
         </div>
 
         {% if request.user.is_authenticated %}
-            <div class="btn-group-justified">
+
+
+            <div id="forever-btn-group" class="btn-group-justified">
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary" onclick="FOREVER_TODO_JS.onCreateNewItem();">Create new item</button>
                 </div>
@@ -57,6 +59,7 @@
 {% block script_base %}
     {{ block.super }}
 
+
     {% if request.user.is_authenticated %}
         <script src="{% static  'js/todo-ui.js' %}"></script>
         <script>
@@ -75,4 +78,20 @@
     <!-- Pickadate jQuery plugin, https://github.com/amsul/pickadate.js, http://www.jqueryrain.com/?V4r9LjZ3 -->
     <script src="{% static 'js/pickadate/picker.js' %}"></script>
     <script src="{% static 'js/pickadate/picker.date.js' %}"></script>
+
+
+    <!-- Responsive design -->
+     <script>
+     $(document).ready(function() {
+        $(window).resize(function() {
+           if ($(window).width() < 600) {
+               $('#forever-btn-group').removeClass('btn-group-justified');
+               $('#forever-btn-group').addClass('btn-group-vertical');
+           } else {
+               $('#forever-btn-group').removeClass('btn-group-vertical');
+               $('#forever-btn-group').addClass('btn-group-justified');
+           }
+        });
+     });
+    </script>
 {% endblock %}
