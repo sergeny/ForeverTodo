@@ -26,13 +26,13 @@
                     <button type="button" class="btn btn-primary" onclick="FOREVER_TODO_JS.onCreateNewItem();">Create new item</button>
                 </div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-default" onclick="FOREVER_TODO_JS.uiSortByTitle();">Sort by name</button>
+                    <button type="button" class="btn btn-default" onclick="$('#main_item_list').fadeOut('fast', function() { FOREVER_TODO_JS.uiSortByTitle(); $('#main_item_list').fadeIn(); }); ">Sort by name</button>
                 </div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-default" onclick="FOREVER_TODO_JS.uiSortByPriority();">Sort by priority</button>
+                    <button type="button" class="btn btn-default" onclick="$('#main_item_list').fadeOut('fast', function() { FOREVER_TODO_JS.uiSortByPriority(); $('#main_item_list').fadeIn(); }); ">Sort by priority</button>
                 </div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-default" onclick="FOREVER_TODO_JS.uiSortByDate();">Sort by date</button>
+                    <button type="button" class="btn btn-default" onclick="$('#main_item_list').fadeOut('fast', function() { FOREVER_TODO_JS.uiSortByDate(); $('#main_item_list').fadeIn(); }); ">Sort by date</button>
                 </div>
             </div>
         {% endif %}
