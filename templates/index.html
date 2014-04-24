@@ -61,7 +61,7 @@
 
 
     {% if request.user.is_authenticated %}
-        <script src="{% static  'js/todo-ui.js' %}"></script>
+        <script src="{% static  'js/todo-ui.min.js' %}"></script>
         <script>
             if (typeof FOREVER_TODO_JS !== "object") { // something went wrong
                 document.getElementById("error-message").style.display = "block";
