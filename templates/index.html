@@ -45,6 +45,9 @@
       won't work without it. Here are the <a href="http://www.enable-javascript.com/" target="_blank">
  instructions how to enable JavaScript in your web browser.</p>
     </noscript>
+        <p class="label-warning lead text-center" id="error-message" style="display: none;">A technical error has occurred. Unfortunately, there is nothing you can do.
+        Please, reload the page or try again later.</p>
+
 
 
      <!-- Main list of items for the current user-->
@@ -57,7 +60,11 @@
     {% if request.user.is_authenticated %}
         <script src="{% static  'js/todo-ui.js' %}"></script>
         <script>
-            FOREVER_TODO_JS.ajax_getAllItems({{ request.user.pk }});
+            if (typeof FOREVER_TODO_JS !== "object") { // something went wrong
+                document.getElementById("error-message").style.display = "block";
+            } else {
+                FOREVER_TODO_JS.init({{ request.user.pk }});
+            }
         </script>
     {% endif %}
 
