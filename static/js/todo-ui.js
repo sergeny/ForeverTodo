@@ -3,7 +3,7 @@
  * The frontend side of the ForeverTodo application for managing lists of todo items.
  */
 
-// TODO: BROWSER CACHE CONTROL (index.html etc)
+
 
 
 // Check if jQuery is loaded
@@ -14,19 +14,35 @@ if (typeof $ == "undefined") {
 FOREVER_TODO_JS = function ($, NS) {
 
 
-    $(document).ready(function () {
-        //toggle `popup` / `inline` mode
+
+    $(function () {
+        // We need to set default type to PUT so that the X-editable plugin will do a PUT request
+        // when the user does in-place editing, instead of POST,
+        // which is not RESTful for modifying a particular resource (and the API requires PUT anyway).
+        $.fn.editable.defaults.ajaxOptions = {type: 'PUT', contentType: 'application/json'};
+
+        // Configure the jQuery X-editable pugin: toggle `popup` / `inline` mode
         $.fn.editable.defaults.mode = 'inline';
     });
 
-// FIXME: cache????
+
     var api_base = "/api/v1/todo/";
     var user_str_prefix = "/api/v1/user/";
     var user_str = undefined;
 
+    /*
+     * This function should be called once in the beginning. It will retrieve all the items belonging
+     * to the given user via an API ajax call. (It would be faster to embed the current set of items into
+     * HTML through templating and save some loading time; if you implement this, just pass the resulting
+     * JS object to this function).
+     *
+     * The function will put the data in window._items, create the UI, link it to the DOM so that it appears on the page,
+     * and attach all event callbacks.
+     *
+     * It is asynchronous (control passes to on success, when the data is received from the server).
+     */
     function init(current_user_id) {
         user_str = user_str_prefix + current_user_id + '/';
-        console.log("loading json, user_str " + user_str);
         $.ajax({
             cache: false,
             url: api_base + "?limit=999999", // Forget pagination for now.
@@ -52,7 +68,6 @@ FOREVER_TODO_JS = function ($, NS) {
                     frag.appendChild(li);
                 }
 
-                //$('#main_item_list').append(frag);
                 document.getElementById('main_item_list').appendChild(frag);
                 // First attach, then sort. It's just  easier to implement.
 
@@ -75,6 +90,10 @@ FOREVER_TODO_JS = function ($, NS) {
         });
     }
 
+    /*
+     * Asynchronously delete the item with the given ID, presumably belonging to the current user.
+     * Done via an AJAX API call, using session authorization into the API.
+     */
     function ajax_deleteItem_async(item_id) {
         $.ajax({
             type: "DELETE", // JQuery has this cryptic note in the documentation that
@@ -90,7 +109,7 @@ FOREVER_TODO_JS = function ($, NS) {
                 // quickly unbind & disable everything before the fadeout.
                 elt.find('*').unbind().prop("disabled", true);
                 elt.fadeOut("slow", function () {
-                    elt.remove(); // remove the ui
+                    elt.remove(); // now remove from the DOM
                 });
             },
             error: function (request, status, error) {
@@ -99,6 +118,18 @@ FOREVER_TODO_JS = function ($, NS) {
             }
         });
     }
+
+    /*
+     * Asynchronously modify the item with the given ID, presumably belonging to the current user.
+     * Done via an AJAX API call, using session authorization into the API.
+     *
+     * On success update the data in _items. No explicit UI updates, but it can call callbacks
+     * onsuccess and onerror passed for this purpose.
+     *
+     * updateValue and sendValue are usually the same, except for dates. Then we send a string,
+     * but we keep a Date() object for updating. Auto-converting does not work because of
+     * date format and timezone issues.
+     */
 
     function ajax_modifyItem_async(item_id, field, sendValue, updateValue, onsuccess, onerror) {
         $.ajax({
@@ -121,8 +152,14 @@ FOREVER_TODO_JS = function ($, NS) {
         })
     }
 
-    /*
-     returns nothing
+   /*
+     * Asynchronously create a new item belonging to the current server.
+     * Done via an AJAX API call, using session authorization into the API.
+     *
+     * The server will respond with a Location uri. This uri is not followed; instead, the ID of the new
+     * item is extracted from this uri. (Basically, it is https:/.../.../<id>/)
+     *
+     * On success add the new element to _items, create the UI element and attach all callbacks.
      */
     function ajax_createItem_async(item) {
         item.user = user_str;
@@ -165,10 +202,16 @@ FOREVER_TODO_JS = function ($, NS) {
     }
 
 
-    $(function () {
-        $.fn.editable.defaults.ajaxOptions = {type: 'PUT', contentType: 'application/json'};
-    });
 
+
+
+    /*
+     * This function creates the HTML for the button to toggle item priority.
+     *
+     * Important: the button is recreated every time, and the callbacks are reattached.
+     * This is done for the sake of readability and after confirming that there is no performance penalty.
+     * (It is easier to understand HTML-like code below than lots of statements manipulating the DOM.)
+     */
 
     function renderPriorityButton(item_id, priority) {
         var clbl = ["label-default", "label-primary", "label-danger"][priority];
@@ -181,20 +224,22 @@ FOREVER_TODO_JS = function ($, NS) {
     }
 
     /*
-     * User toggled the priority of an item to the next value
+     * onClick event handler for changing the item priority.
      */
     function toggleItemPriority(item_id, is_enabled) {
         setItemPriority(item_id, (window._items[item_id].priority + 1) % 3);
     }
 
     function setItemPriority(item_id, priority) {
-        ajax_modifyItem_async(item_id, 'priority', priority, priority, function () {
-            $('#btn-priority-' + item_id).replaceWith(renderPriorityButton(item_id, priority));
+        ajax_modifyItem_async(item_id, 'priority', priority, priority, function () { // update the data, and...
+            $('#btn-priority-' + item_id).replaceWith(renderPriorityButton(item_id, priority)); // ...update the ui
         }, function () {
         });
     }
 
     /*
+     * Helper function.
+     *
      * Args: params is an object containing name, value, pk.
      * Name can be e.g. 'title' or 'expires', anything that items have. Value is the new value.
      * The function returns a string (JSON) representing the modified object #pk.
@@ -212,7 +257,12 @@ FOREVER_TODO_JS = function ($, NS) {
     }
 
     /*
-     * Attach jQuery X-editable callbacks for in-place editing of the item title and contents
+     * This function attaches callbacks for jQuery plugins X-editable and Datepicker.js for the
+     * item #item_id. It is called often, as when there is a major change to an item (e.g. marked as completed),
+     * it is recreated from scratch (HTML) instead of modifying lots of attributes, and then we need
+     * to bind the handlers again.
+     *
+     * It is fairly slow.
      */
     function attachCallbacks(item_id) {
         var element = $('#todo-item-' + item_id);
@@ -284,7 +334,7 @@ FOREVER_TODO_JS = function ($, NS) {
     }
 
     /*
-     * User chose to mark an item as completed or revert to pending (is_completed is true or false, respectively)
+     * onClick event handler for marking an item as completed or reverting to pending.
      */
     function markCompleted(item_id, is_completed) {
         ajax_modifyItem_async(item_id, 'completed', is_completed, is_completed, function () {
@@ -331,23 +381,9 @@ FOREVER_TODO_JS = function ($, NS) {
             "</div></div>";
     }
 
-    /*
-     * Returns a dictionary of pairs { <item_id> : <HTML code for a rendered div> }
-     *
-     * This function has no side effects.
-     */
-    function renderAllItems() {
-        var result = {};
-        for (var item_id in window._items) {
-            i = window._items[item_id];
-            console.log("renderAllItems " + item_id);
-            result[item_id] = renderItemHTML(item_id, i.title, i.text, i.priority, i.completed);
-        }
-        return result;
-    }
 
     /*
-     * User requested to create a new item. Create something really standard, then let the user edit.
+     * onClick event handler to create a new item.
      */
     function onCreateNewItem() {
         var item = {
