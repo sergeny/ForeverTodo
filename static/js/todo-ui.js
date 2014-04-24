@@ -338,10 +338,14 @@ FOREVER_TODO_JS = function ($, NS) {
 
     /*
      * onClick event handler for marking an item as completed or reverting to pending.
+     *
+     * Important: the entire <div> with the item is recreated every time, and the callbacks are reattached.
+     * This is done for the sake of readability and after confirming that there is no performance penalty.
+     * (It is easier to understand HTML-like code in renderItemHTML than lots of statements manipulating the DOM.)
+
      */
     function markCompleted(item_id, is_completed) {
         ajax_modifyItem_async(item_id, 'completed', is_completed, is_completed, function () {
-            // TODO: do without replaceWith?
             var i = _items[item_id];
             $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
             // Reattach event handlers
