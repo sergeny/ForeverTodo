@@ -33,6 +33,8 @@
 
 {% block script_base %}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script>!window.jQuery && document.write('<script src="{% static 'js/jquery.2.1.0.min.js' %}""><\/script>');</script>
+
     <script src="{% static "pinax/js/theme.js" %}"></script>
     <!-- netdna.bootstrapcdn.com is extremely slow for me -->
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
