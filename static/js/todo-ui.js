@@ -13,7 +13,10 @@ if (typeof $ == "undefined") {
 
 FOREVER_TODO_JS = function ($, NS) {
 
-
+    // APPLICATION DATA
+    //
+    // Stores todo items indexed by integer keys (ids).
+    var _items = {};
 
     $(function () {
         // We need to set default type to PUT so that the X-editable plugin will do a PUT request
@@ -36,7 +39,7 @@ FOREVER_TODO_JS = function ($, NS) {
      * HTML through templating and save some loading time; if you implement this, just pass the resulting
      * JS object to this function).
      *
-     * The function will put the data in window._items, create the UI, link it to the DOM so that it appears on the page,
+     * The function will put the data in _items, create the UI, link it to the DOM so that it appears on the page,
      * and attach all event callbacks.
      *
      * It is asynchronous (control passes to on success, when the data is received from the server).
@@ -49,7 +52,7 @@ FOREVER_TODO_JS = function ($, NS) {
             dataType: "json",
             success: function (data) {
                 var frag = document.createDocumentFragment(); // For performance: construct, then attach to DOM.
-                window._items = {}
+                _items = {}
                 for (var i = 0, l = data.objects.length; i < l; i++) {
                     var item = data.objects[i];
                     // convert from string such as "Sun, 20 Apr 2014 01:19:24 +0000" to Date()
@@ -59,7 +62,7 @@ FOREVER_TODO_JS = function ($, NS) {
                         // we might get a date in another language, which, of course, will fail.
                         item.expires = new Date(item.expires);
                     }
-                    window._items[item.id] = item;
+                    _items[item.id] = item;
 
 
                     var li = document.createElement('li');
@@ -103,7 +106,7 @@ FOREVER_TODO_JS = function ($, NS) {
             // I assume that, in fact, as of 2014, all major browsers do support PUT and DELETE.
             url: api_base + item_id + '/',
             success: function (data, status, xhr) {
-                delete window._items[item_id]; // remove the data
+                delete _items[item_id]; // remove the data
                 var elt = $('#todo-item-' + item_id);
                 // In case the user is very fast (or is using scripts),
                 // quickly unbind & disable everything before the fadeout.
@@ -141,7 +144,7 @@ FOREVER_TODO_JS = function ($, NS) {
                 // console.log(data);
                 // console.log(status);
                 // console.log(xhr);
-                window._items[item_id][field] = updateValue;
+                _items[item_id][field] = updateValue;
                 onsuccess();
             },
             error: function (request, status, error) {
@@ -178,7 +181,7 @@ FOREVER_TODO_JS = function ($, NS) {
                 item_id = parseInt(s[s.length - 2]);
                 if (isNaN(item_id)) {
                     throw "Error while parsing " + location + " to get item id";
-                } else if (item_id in window._items) {
+                } else if (item_id in _items) {
                     throw "Server returned duplicate item id " + item_id + " for a new element";
                 } else {
                     _items[item_id] = item;
@@ -216,7 +219,7 @@ FOREVER_TODO_JS = function ($, NS) {
     function renderPriorityButton(item_id, priority) {
         var clbl = ["label-default", "label-primary", "label-danger"][priority];
         var ctxt = ["Low priority", "Normal priority", "High priority"][priority];
-        var is_enabled = !window._items[item_id].completed; // Cannot change priority for completed items
+        var is_enabled = !_items[item_id].completed; // Cannot change priority for completed items
 
         return "<button " + (is_enabled ? "" : " disabled ") + " type=\"button\" class=\"btn " + clbl +
             "\" id=\"btn-priority-" + item_id + "\" priority=" + priority + " onclick=\"" + NS + ".toggleItemPriority(" + item_id +
@@ -227,7 +230,7 @@ FOREVER_TODO_JS = function ($, NS) {
      * onClick event handler for changing the item priority.
      */
     function toggleItemPriority(item_id, is_enabled) {
-        setItemPriority(item_id, (window._items[item_id].priority + 1) % 3);
+        setItemPriority(item_id, (_items[item_id].priority + 1) % 3);
     }
 
     function setItemPriority(item_id, priority) {
@@ -246,7 +249,7 @@ FOREVER_TODO_JS = function ($, NS) {
      */
     function stringifyUpdatedItem(params) {
         var data = {}
-        var item = window._items[params.pk];
+        var item = _items[params.pk];
         for (prop in item) { // copy the existing item
             data[prop] = item[prop];
         }
@@ -290,7 +293,7 @@ FOREVER_TODO_JS = function ($, NS) {
         });
 
 
-        var date = window._items[item_id].expires;
+        var date = _items[item_id].expires;
         var picker = element.find('.datepicker').pickadate({
             clear: 'Never expires'
         }).pickadate('picker').clear();
@@ -299,7 +302,7 @@ FOREVER_TODO_JS = function ($, NS) {
             picker.set('select', date);
         }
 
-        if (!window._items[item_id].completed) { // Item not done yet --> the date can be changed
+        if (!_items[item_id].completed) { // Item not done yet --> the date can be changed
 
             function onPickerSet(context) {
                 // Important to use UTC String. Tastypie does not properly parse the typical JS date-time format.
@@ -310,7 +313,7 @@ FOREVER_TODO_JS = function ($, NS) {
                     },
                     function () {
                         // Revert the ui on failure
-                        var prevdate = window._items[item_id].expires;
+                        var prevdate = _items[item_id].expires;
                         if (prevdate) {
                             picker.set('select', prevdate, { muted: true});
                         } else {
@@ -339,7 +342,7 @@ FOREVER_TODO_JS = function ($, NS) {
     function markCompleted(item_id, is_completed) {
         ajax_modifyItem_async(item_id, 'completed', is_completed, is_completed, function () {
             // TODO: do without replaceWith?
-            var i = window._items[item_id];
+            var i = _items[item_id];
             $('#todo-item-' + item_id).replaceWith(renderItemHTML(item_id, i.title, i.text, i.priority, i.completed));
             // Reattach event handlers
             attachCallbacks(item_id);
@@ -412,21 +415,21 @@ FOREVER_TODO_JS = function ($, NS) {
      * This is a helper function.
      * It creates a comparator function to be used by the TinySort plugin (http://tinysort.sjeiti.com/).
      * The function should accept two arguments a1 and a2 such that a1.e and a2.e are the jQuery objects to be sorted.
-     * It should return -1, 0, or 1. The sorting is done by the associated data in window._items using the field 'field'.
+     * It should return -1, 0, or 1. The sorting is done by the associated data in _items using the field 'field'.
      * If null_is_last is set to true, all null values will go to the end (typically null is the smallest value).
      * This is useful for e.g. expiration dates, to show first all entries with set dates in sorted order.
      */
     function sortBy(field, null_is_last) {
         if (!null_is_last) {
             return function (a1, a2) {
-                var value1 = window._items[a1.e.attr('data-pk')][field];
-                var value2 = window._items[a2.e.attr('data-pk')][field];
+                var value1 = _items[a1.e.attr('data-pk')][field];
+                var value2 = _items[a2.e.attr('data-pk')][field];
                 return value1 == value2 ? 0 : (value1 > value2 ? 1 : -1);
             }
         } else {
             return function (a1, a2) {
-                var value1 = window._items[a1.e.attr('data-pk')][field];
-                var value2 = window._items[a2.e.attr('data-pk')][field];
+                var value1 = _items[a1.e.attr('data-pk')][field];
+                var value2 = _items[a2.e.attr('data-pk')][field];
                 if (!value1) {
                     return (!value2) ? 0 : 1;
                 }
