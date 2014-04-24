@@ -137,7 +137,8 @@ function ajax_createItem_async(item) {
                 var li = document.createElement('li');
                 li.setAttribute('data-pk', item_id);
                 li.innerHTML = renderItemHTML(item_id, item.title, item.text, item.priority, item.completed);
-                document.getElementById("main_item_list").prependChild(li);
+                var ul = document.getElementById("main_item_list");
+                ul.insertBefore(li, ul.firstChild);
                 attachCallbacks(item_id);
             }
         },
