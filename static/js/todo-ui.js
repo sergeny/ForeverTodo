@@ -6,7 +6,13 @@
 // TODO: BROWSER CACHE CONTROL (index.html etc)
 
 
+// Check if jQuery is loaded
+if (typeof $ == "undefined" ) {
+    throw "jQuery is not loaded";
+}
+
 FOREVER_TODO_JS = function($, NS) {
+
 
 
 $(document).ready(function () {
@@ -18,7 +24,7 @@ $(document).ready(function () {
 var api_base="/api/v1/todo/";
 var user_str_prefix="/api/v1/user/";
 var user_str=undefined;
-function ajax_getAllItems(current_user_id) {
+function init(current_user_id) {
     user_str=user_str_prefix + current_user_id + '/';
     console.log("loading json, user_str "+user_str);
     $.ajax({
@@ -404,7 +410,7 @@ function uiSortByDate() {
 
 
 return {
-    ajax_getAllItems: ajax_getAllItems,
+    init: init,
     onCreateNewItem: onCreateNewItem,
     markCompleted: markCompleted,
     ajax_deleteItem_async: ajax_deleteItem_async,
