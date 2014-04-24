@@ -1,5 +1,5 @@
 /**
- * (C) Created by Sergey Orshanskiy on 4/14/14.
+ * (C) Sergey Orshanskiy,2014.
  * The frontend side of the ForeverTodo application for managing lists of todo items.
  */
 
