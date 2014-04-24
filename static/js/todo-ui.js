@@ -4,15 +4,6 @@
  */
 
 // TODO: BROWSER CACHE CONTROL (index.html etc)
-// TODO: WRAP INTO A FUNCTION
-
-
-window._items = {
-    2: { title: 'Pick up milk', text: 'Really pick up milk', priority: 0, expires: new Date(2014, 10, 5), completed: false },
-    3: { title: 'Learn python', text: 'Really learn python', priority: 1, expires: null, completed: true },
-    4: { title: 'Pick up kefir', text: 'Really pick up kefir', priority: 2, expires: null, completed: false },
-    5: { title: 'Learn django', text: 'Really learn django', priority: 0, expires: new Date(2010, 5, 10), completed: true }
-}
 
 
 $(document).ready(function () {
@@ -29,24 +20,45 @@ function ajax_getAllItems(current_user_id) {
     console.log("loading json, user_str "+user_str);
     $.ajax({
         cache: false,
-        url: api_base + "?limit=999999",
+        url: api_base + "?limit=999999", // Forget pagination for now.
         dataType: "json",
         success: function(data) {
+            var frag = document.createDocumentFragment(); // For performance: construct, then attach to DOM.
             window._items = {}
             for (var i = 0, l = data.objects.length; i<l; i++) {
                 var item = data.objects[i];
                 // convert from string such as "Sun, 20 Apr 2014 01:19:24 +0000" to Date()
                 if (item.expires) { // if it is null, leave it. Don't change to Dec 1969.
+
+                    // Warning: the Tastypie API has issues with localization. If it is enabled,
+                    // we might get a date in another language, which, of course, will fail.
                     item.expires = new Date(item.expires);
                 }
                 window._items[item.id] = item;
 
-                // FIXME: refactor
-                //update the ui
-                // IMPORTANT: update the ui only after the data has been received!
-                $('#main_item_list').append(renderItemHTML(item.id, item.title, item.text, item.priority, item.completed));
-                attachCallbacks(item.id);
+
+                var li = document.createElement('li');
+                li.setAttribute('data-pk', item.id);
+                li.innerHTML = renderItemHTML(item.id, item.title, item.text, item.priority, item.completed);
+                frag.appendChild(li);
             }
+
+            //$('#main_item_list').append(frag);
+            document.getElementById('main_item_list').appendChild(frag);
+            // First attach, then sort. It's just  easier to implement.
+
+            uiSortByTitle();
+            uiSortByDate();
+
+
+
+            // This can get pretty slow with many items, mostly because of the Pickadate.js widget.
+            // Fortunately, by this point we have nothing else to do,
+            // and the user can probably live for half a second without some callbacks.
+            for (var i = 0, l = data.objects.length; i<l; i++) {
+                attachCallbacks(data.objects[i].id);
+            }
+
         },
         error: function(request, status, error) {
             alert("We are so sorry! Loading your items failed: " + error + ". You can try to refresh the page or come back later.");
@@ -119,7 +131,10 @@ function ajax_createItem_async(item) {
             } else {
                 _items[item_id] = item;
                 // update the ui
-                $('#main_item_list').prepend(renderItemHTML(item_id, item.title, item.text, item.priority, item.completed));
+                var li = document.createElement('li');
+                li.setAttribute('data-pk', item_id);
+                li.innerHTML = renderItemHTML(item_id, item.title, item.text, item.priority, item.completed);
+                document.getElementById("main_item_list").prependChild(li);
                 attachCallbacks(item_id);
             }
         },
@@ -212,13 +227,12 @@ function attachCallbacks(item_id) {
     });
 
 
-
     var date=window._items[item_id].expires;
     var picker = element.find('.datepicker').pickadate({
         clear: 'Never expires'
     }).pickadate('picker').clear();
     if (date != undefined) { // Populate the input field with the initial date
-        console.log("Initializing the picker with date " + date + " (item_id=" + item_id + ")");
+        //console.log("Initializing the picker with date " + date + " (item_id=" + item_id + ")");
         picker.set('select', date);
     }
 
@@ -276,8 +290,7 @@ function markCompleted(item_id, is_completed) {
  */
 function renderItemHTML(item_id, title, text, priority, is_completed) {
 
-    return "<li data-pk=\"" + item_id + "\">" +
-        (is_completed ? "<div class=\"todo-item panel panel-success\" id=\"todo-item-" + item_id + "\">" :
+    return  (is_completed ? "<div class=\"todo-item panel panel-success\" id=\"todo-item-" + item_id + "\">" :
         "<div class=\"todo-item panel panel-default\"               id=\"todo-item-" + item_id + "\">") +
         "<div class=\"panel-heading\">" +
         (is_completed ?
@@ -300,8 +313,7 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
         (is_completed ? " disabled=true ": "") + " /><em>" +
         (is_completed ? "(not editable any more)" : "(click or tap to edit)") + "</em>" +
         "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\"ajax_deleteItem_async(" + item_id + ");\" >Delete</button>" +
-        "</div></div> +" +
-        "</li>";
+        "</div></div>";
 }
 
 /*
@@ -364,12 +376,13 @@ function sortBy(field, null_is_last) {
         return function(a1, a2) {
             var value1 = window._items[a1.e.attr('data-pk')][field];
             var value2 = window._items[a2.e.attr('data-pk')][field];
-            if (!value1) { return 1;}
-            if (!value2) { return -1;}
+            if (!value1) { return (!value2) ? 0 : 1;}
+            if (!value2) { return (!value1) ? 0 : -1;}
             return value1==value2 ? 0 : (value1>value2 ? 1 : -1);
         }
     }
 }
+
 
 function uiSortByTitle() {
       uiGetItems().tsort('.datepicker', {sortFunction: sortBy('title', false)});;
@@ -384,3 +397,4 @@ function uiSortByPriority() {
 function uiSortByDate() {
     uiGetItems().tsort('.datepicker', {sortFunction: sortBy('expires', true)});;
 }
+
