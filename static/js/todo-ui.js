@@ -86,7 +86,13 @@ function ajax_deleteItem_async(item_id) {
         url: api_base + item_id + '/',
         success: function(data, status, xhr) {
             delete window._items[item_id]; // remove the data
-            $('#todo-item-'+item_id).remove(); // remove the ui
+            var elt = $('#todo-item-'+item_id);
+            // In case the user is very fast (or is using scripts),
+            // quickly unbind & disable everything before the fadeout.
+            elt.find('*').unbind().prop("disabled", true);
+            elt.fadeOut("slow", function() {
+                elt.remove(); // remove the ui
+            });
         },
         error: function(request, status, error) {
             alert("We are so sorry! Delete unexpectedly failed: " + error);
@@ -143,8 +149,10 @@ function ajax_createItem_async(item) {
                 var li = document.createElement('li');
                 li.setAttribute('data-pk', item_id);
                 li.innerHTML = renderItemHTML(item_id, item.title, item.text, item.priority, item.completed);
+                li.style.display = "none";
                 var ul = document.getElementById("main_item_list");
                 ul.insertBefore(li, ul.firstChild);
+                $(li).fadeIn("slow");
                 attachCallbacks(item_id);
             }
         },
