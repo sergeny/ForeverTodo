@@ -6,6 +6,9 @@
 // TODO: BROWSER CACHE CONTROL (index.html etc)
 
 
+FOREVER_TODO_JS = function($, NS) {
+
+
 $(document).ready(function () {
     //toggle `popup` / `inline` mode
     $.fn.editable.defaults.mode = 'inline';
@@ -165,7 +168,7 @@ function renderPriorityButton(item_id, priority) {
     var is_enabled = !window._items[item_id].completed; // Cannot change priority for completed items
 
     return "<button " + (is_enabled ? "" : " disabled ") + " type=\"button\" class=\"btn " + clbl +
-        "\" id=\"btn-priority-" + item_id + "\" priority=" + priority + " onclick=\"toggleItemPriority(" + item_id +
+        "\" id=\"btn-priority-" + item_id + "\" priority=" + priority + " onclick=\""+NS+".toggleItemPriority(" + item_id +
         ", true); \">" + ctxt + "</button>";
 }
 
@@ -307,12 +310,12 @@ function renderItemHTML(item_id, title, text, priority, is_completed) {
         "\" data-type=\"textarea\" data-pk=\"" + item_id + "\">" + text + "</div>" +
         "<div class=\"panel-footer\" style=\"position: relative\">" +
         (is_completed ?
-            "<button type=\"button\" class=\"btn btn-sm\"    onclick=\"markCompleted(" + item_id + ", false);\">Revert to pending</button>" :
-            "<button type=\"button\" class=\"btn btn-success\" onclick=\"markCompleted(" + item_id + ", true);\">Mark as completed</button>") +
+            "<button type=\"button\" class=\"btn btn-sm\"    onclick=\""+NS+".markCompleted(" + item_id + ", false);\">Revert to pending</button>" :
+            "<button type=\"button\" class=\"btn btn-success\" onclick=\""+NS+".markCompleted(" + item_id + ", true);\">Mark as completed</button>") +
         "&nbsp;Item expires: <input type=\"text\" class=\"datepicker\" autocomplete=\"off\" " +
         (is_completed ? " disabled=true ": "") + " /><em>" +
         (is_completed ? "(not editable any more)" : "(click or tap to edit)") + "</em>" +
-        "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\"ajax_deleteItem_async(" + item_id + ");\" >Delete</button>" +
+        "<button type=\"button\" class=\"btn btn-warning pull-right\" onclick=\""+NS+".ajax_deleteItem_async(" + item_id + ");\" >Delete</button>" +
         "</div></div>";
 }
 
@@ -398,3 +401,15 @@ function uiSortByDate() {
     uiGetItems().tsort('.datepicker', {sortFunction: sortBy('expires', true)});;
 }
 
+
+return {
+    ajax_getAllItems: ajax_getAllItems,
+    onCreateNewItem: onCreateNewItem,
+    markCompleted: markCompleted,
+    ajax_deleteItem_async: ajax_deleteItem_async,
+    toggleItemPriority: toggleItemPriority,
+    uiSortByTitle: uiSortByTitle,
+    uiSortByPriority: uiSortByPriority,
+    uiSortByDate: uiSortByDate
+};
+}($, "FOREVER_TODO_JS");
