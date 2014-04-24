@@ -97,6 +97,7 @@ LOGGING = {
 
 ALLOWED_HOSTS = []
 
+SITE_ID = 1
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -117,6 +118,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'djangosecure',
 
     'tastypie',
@@ -205,6 +207,9 @@ THEME_ACCOUNT_CONTACT_EMAIL = "no-contact@sad.com"
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# This is for pinax account, so that the emails sent to users contain links starting with https
+DEFAULT_HTTP_PROTOCOL='https'
 
 # Allow all host headers
 ALLOWED_HOSTS = ['*']
